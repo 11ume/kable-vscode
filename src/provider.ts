@@ -78,11 +78,17 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         Object.keys(node).forEach((key) => {
             const itemIsObj = isObject(node[key])
             const icon = itemIsObj ? 'prop_ext' : 'prop'
+            let childs: NodeItem[] = []
+            if (itemIsObj) {
+                childs = this.createNodeChilds(node[key])
+            }
+
             const nodeItem = this.createItem(`${itemIsObj ? key : `${key}: `} ${itemIsObj ? '' : node[key]}`
                 , icon
                 , itemIsObj
                     ? vscode.TreeItemCollapsibleState.Collapsed
-                    : vscode.TreeItemCollapsibleState.None)
+                    : vscode.TreeItemCollapsibleState.None
+                , ...childs)
             nodeChilds.push(nodeItem)
         })
 

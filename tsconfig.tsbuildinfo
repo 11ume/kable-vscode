@@ -310,7 +310,7 @@
         "version": "dd6dab0ed0750ab9ef978de7260d14ba73c1f0fdd67e15f4bedda0696d5035f2"
       },
       "./src/provider.ts": {
-        "version": "a34adef23ee6e01ec508eda3f5aad42f1ef17fa4494bb63d69784a5e4a7558da",
+        "version": "01efb949a986b07227a6b0987a5981744211bfc6b9175d7fbfcefc28f78799d0",
         "signature": "eabf16bbf3e1a735b8c1c44a8646c3e945dd59f9cd5d3cb3997743146e100691"
       },
       "./src/extension.ts": {
