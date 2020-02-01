@@ -8,6 +8,14 @@ import { Assets } from './assets'
 import { isObject } from './utils'
 import fromUnixTime from 'date-fns/fromUnixTime'
 
+interface CreateItemArgs {
+    label: string
+    ; icon: string
+    ; contextValue?: string
+    ; collapsibleState: vscode.TreeItemCollapsibleState
+    ; children: NodeItem[];
+}
+
 export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
     onDidChangeTreeData: vscode.Event<NodeItem>
@@ -106,12 +114,14 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
                 childs = this.createNodeChilds(node[key])
             }
 
-            const nodeItem = this.createItem(this.makeChildItemName(itemIsObj, node, key)
+            const nodeItem = this.createItem({
+                label: this.makeChildItemName(itemIsObj, node, key)
                 , icon
-                , itemIsObj
+                , collapsibleState: itemIsObj
                     ? vscode.TreeItemCollapsibleState.Collapsed
                     : vscode.TreeItemCollapsibleState.None
-                , ...childs)
+                , children: childs
+            })
             nodeChilds.push(nodeItem)
         }
 
@@ -121,10 +131,14 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     private async runNode(): Promise<void> {
         await this.node.up()
         this.node.suscribeAll((node) => {
-            const nodeItem = this.createItem(node.id
-                , this.setNodeStateIcon(node.state)
-                , vscode.TreeItemCollapsibleState.Collapsed
-                , ...this.createNodeChilds(node))
+            // create main items
+            const nodeItem = this.createItem({
+                label: node.id
+                , contextValue: 'nodeTree'
+                , icon: this.setNodeStateIcon(node.state)
+                , collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+                , children: this.createNodeChilds(node)
+            })
 
             for (const n of this.nodes.values()) {
                 if (this.chechNodeState(n, node)) return
@@ -175,11 +189,14 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return node
     }
 
-    createItem(label: string
-        , icon: string
-        , collapsibleState: vscode.TreeItemCollapsibleState
-        , ...children: NodeItem[]): NodeItem {
-        const item = new NodeItem({ label, collapsibleState, children })
+    createItem({
+        label
+        , icon
+        , contextValue
+        , collapsibleState
+        , children
+    }: CreateItemArgs): NodeItem {
+        const item = new NodeItem({ label, contextValue, collapsibleState, children })
         this.addItemIcon(item, icon)
         return item
     }

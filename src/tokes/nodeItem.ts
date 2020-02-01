@@ -2,17 +2,24 @@ import * as vscode from 'vscode'
 
 interface NodeItemArgs {
 	label?: string
-	; collapsibleState?: vscode.TreeItemCollapsibleState
 	; command?: vscode.Command
+	; contextValue?: string
+	; collapsibleState?: vscode.TreeItemCollapsibleState
 	; children?: vscode.TreeItem[];
 }
 
 export default class NodeItem extends vscode.TreeItem {
-	children?: vscode.TreeItem[]
 	command?: vscode.Command
+	contextValue?: string
 	collapsibleState?: vscode.TreeItemCollapsibleState
+	children?: vscode.TreeItem[]
 
-	constructor({ label, children, command, collapsibleState }: NodeItemArgs) {
+	constructor({
+		label
+		, children
+		, command
+		, contextValue
+		, collapsibleState }: NodeItemArgs) {
 		super(
 			label,
 			children === undefined ? vscode.TreeItemCollapsibleState.None :
@@ -20,6 +27,7 @@ export default class NodeItem extends vscode.TreeItem {
 		this.label = label
 		this.children = children
 		this.command = command
+		this.contextValue = contextValue
 		this.collapsibleState = collapsibleState
 	}
 }

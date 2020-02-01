@@ -174,8 +174,8 @@
         "signature": "19368aaaacc9980c7a169d217af8b3077409c23ba5b7e975e03884330909de34"
       },
       "./src/tokes/nodeitem.ts": {
-        "version": "71cd8c95aa99344b9c656ce0e26f71a0afa2d21c4674150863060b78ca9c89e6",
-        "signature": "85ec6b92ccb5b427a58770ea6df8ae750fe5dbfa3b13739ec7ea3aeeca99b5d4"
+        "version": "24139b6a288f7c935ecfadb41385a1a290434a223269d71974ad9d9da3f3b4f5",
+        "signature": "246c8844a86d7206d16645d5ed8a9a17f65376368a813ecd58f6d4c46faeee66"
       },
       "./node_modules/kable-core/lib/constants/events.ts": {
         "version": "653d2dc58374fdfb26aa35002d4f36707a3b455402ad4dc968678312e2f37100"
@@ -318,8 +318,8 @@
         "signature": "ddcd3dcb50559eaf224dcc01d091d598622095761df740b30a2bd34db667985b"
       },
       "./src/provider.ts": {
-        "version": "4356441131f0f5fbc5a22c502775e5069682159edf58d191985aa3ff1070b435",
-        "signature": "1997f3c301f7e4c3a6dbb37f72c0af232fe8202c3a31c1a920334fd799f3db5d"
+        "version": "72134f3d9a93d69bdd925db2f9af111366e9333a67998b61a458f602e1ec13f1",
+        "signature": "6a3bbdf74f91e78788da25dca44821d6af95af825bca7a9e0646c48b880e77bc"
       },
       "./src/extension.ts": {
         "version": "8eca997a5eba6d9b78e8fe87eed9758c6715df5130fac6f378b1761b18cfd750",
@@ -2724,7 +2724,6 @@
       "./node_modules/kable-core/main.ts",
       "./src/utils.ts",
       "./node_modules/date-fns/typings.d.ts",
-      "./src/provider.ts",
       "./node_modules/@types/color-name/index.d.ts",
       "./node_modules/@types/eslint-visitor-keys/index.d.ts",
       "./node_modules/@types/node/globals.d.ts",
@@ -2777,6 +2776,7 @@
       "./node_modules/@types/glob/index.d.ts",
       "./node_modules/@types/ip/index.d.ts",
       "./node_modules/@types/json-schema/index.d.ts",
+      "./src/provider.ts",
       "./src/extension.ts"
     ]
   },

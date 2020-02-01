@@ -41,7 +41,7 @@
                 }
             },
             {
-                "command": "extension.treeview.edit",
+                "command": "extension.treeview.freezeNode",
                 "title": "Freeze this node",
                 "icon": {
                     "dark": "assets/freeze.svg",
@@ -49,7 +49,7 @@
                 }
             },
             {
-                "command": "extension.treeview.nodes",
+                "command": "extension.treeview.showNodes",
                 "title": "Show Nodes",
                 "icon": {
                     "dark": "assets/nodes.svg",
@@ -67,9 +67,14 @@
             ],
             "view/item/context": [
                 {
-                    "command": "extension.treeview.edit",
+                    "command": "extension.treeview.freezeNode",
                     "group": "inline",
-                    "when": "view == nodeViewer"
+                    "when": "view == nodeViewer && viewItem == nodeTree"
+                },
+                {
+                    "command": "extension.treeview.showNodes",
+                    "group": "inline",
+                    "when": "view == nodeViewer && viewItem == nodeTree"
                 }
             ]
         }
