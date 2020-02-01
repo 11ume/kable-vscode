@@ -1,0 +1,49 @@
+{
+    "name": "custom-view-samples",
+    "displayName": "Custom view Samples",
+    "description": "Samples for VSCode's view API",
+    "version": "0.0.1",
+    "publisher": "vscode-samples",
+    "enableProposedApi": true,
+    "engines": {
+        "vscode": "^1.39.0"
+    },
+    "activationEvents": [
+        "onView:nodeViewer"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "node-viewer",
+                    "title": "Node viewer",
+                    "icon": "assets/ext.svg"
+                }
+            ]
+        },
+        "views": {
+            "node-viewer": [
+                {
+                    "id": "nodeViewer",
+                    "name": ""
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "@types/node": "^13.5.2",
+        "@types/vscode": "^1.41.0",
+        "tslint": "^6.0.0",
+        "typescript": "^3.7.5"
+    },
+    "dependencies": {
+        "kable-core": "git+https://github.com/11ume/kable-core.git",
+        "node-fetch": "^2.6.0"
+    }
+}
