@@ -29,6 +29,49 @@
                     "name": ""
                 }
             ]
+        },
+        "commands": [
+            {
+                "command": "extension.treeview.freeze",
+                "title": "Freeze all nodes",
+                "category": "TreeView",
+                "icon": {
+                    "dark": "assets/freeze.svg",
+                    "light": "assets/freeze.svg"
+                }
+            },
+            {
+                "command": "extension.treeview.edit",
+                "title": "Freeze this node",
+                "icon": {
+                    "dark": "assets/freeze.svg",
+                    "light": "assets/freeze.svg"
+                }
+            },
+            {
+                "command": "extension.treeview.nodes",
+                "title": "Show Nodes",
+                "icon": {
+                    "dark": "assets/nodes.svg",
+                    "light": "assets/nodes.svg"
+                }
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "extension.treeview.freeze",
+                    "group": "navigation",
+                    "when": "view == nodeViewer"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "extension.treeview.edit",
+                    "group": "inline",
+                    "when": "view == nodeViewer"
+                }
+            ]
         }
     },
     "scripts": {

@@ -318,11 +318,11 @@
         "signature": "ddcd3dcb50559eaf224dcc01d091d598622095761df740b30a2bd34db667985b"
       },
       "./src/provider.ts": {
-        "version": "bd1ad39fa5ea196c36aa50e380bd5fc1090f7f89492b5847cc53828f6a45ef57",
-        "signature": "0fc00626c3d8a26add2ec42617c90f8e6211c9a0f5b1e0a670b6226e2459370f"
+        "version": "4356441131f0f5fbc5a22c502775e5069682159edf58d191985aa3ff1070b435",
+        "signature": "1997f3c301f7e4c3a6dbb37f72c0af232fe8202c3a31c1a920334fd799f3db5d"
       },
       "./src/extension.ts": {
-        "version": "d72bb622e381933658287aff844b317c931212b0c68ffccc34a9a6e965baaf0c",
+        "version": "8eca997a5eba6d9b78e8fe87eed9758c6715df5130fac6f378b1761b18cfd750",
         "signature": "e611adfb331b9324b55ae3bcbb0db66cb85a1918f72e4926465f21d1101c568a"
       },
       "./node_modules/@types/color-name/index.d.ts": {
@@ -2683,6 +2683,7 @@
       "./node_modules/typescript/lib/lib.esnext.full.d.ts",
       "./node_modules/@types/vscode/index.d.ts",
       "./src/assets.ts",
+      "./src/tokes/nodeitem.ts",
       "./node_modules/kable-core/lib/constants/events.ts",
       "./node_modules/kable-core/lib/constants/eventtypes.ts",
       "./node_modules/@types/uuid/interfaces.d.ts",
@@ -2723,6 +2724,7 @@
       "./node_modules/kable-core/main.ts",
       "./src/utils.ts",
       "./node_modules/date-fns/typings.d.ts",
+      "./src/provider.ts",
       "./node_modules/@types/color-name/index.d.ts",
       "./node_modules/@types/eslint-visitor-keys/index.d.ts",
       "./node_modules/@types/node/globals.d.ts",
@@ -2775,8 +2777,6 @@
       "./node_modules/@types/glob/index.d.ts",
       "./node_modules/@types/ip/index.d.ts",
       "./node_modules/@types/json-schema/index.d.ts",
-      "./src/tokes/nodeitem.ts",
-      "./src/provider.ts",
       "./src/extension.ts"
     ]
   },

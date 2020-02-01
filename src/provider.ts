@@ -14,16 +14,23 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     private items: Map<string, NodeItem>
     private nodes: Map<string, NodeEmitter>
     private node: Kable
+    public isfreeze: boolean
 
     constructor(private _assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
         this.items = new Map()
         this.nodes = new Map()
         this.node = kable('vscode-ext')
+        this.isfreeze = false
         this.runNode()
     }
 
+    public freeze(): void {
+        this.isfreeze = !this.isfreeze
+    }
+
     private refresh(): void {
+        if (this.isfreeze) return
         this._onDidChangeTreeData.fire()
     }
 
