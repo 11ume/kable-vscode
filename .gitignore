@@ -5,4 +5,3 @@ node_modules
 *.vsix
 *.asc
 package-lock.json
-.vscode/

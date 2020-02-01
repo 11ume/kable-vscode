@@ -3,12 +3,9 @@ import NodeItem from './tokes/nodeItem'
 import kable from 'kable-core'
 import { Kable } from 'kable-core/lib/kable'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
-import { Assets } from './assets'
 import { NODE_STATES } from 'kable-core/lib/node'
-
-function isObject(item: object) {
-    return (typeof item === 'object' && !Array.isArray(item) && item !== null)
-}
+import { Assets } from './assets'
+import { isObject } from './utils'
 
 export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
@@ -25,16 +22,16 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.runNode()
     }
 
-    private nodeAdd(node: NodeEmitter, nodeItem: NodeItem) {
+    private nodeAdd(node: NodeEmitter, nodeItem: NodeItem): void {
         this.items.set(node.iid, nodeItem)
         this.nodes.set(node.iid, node)
     }
 
-    private orderNodes() {
+    private orderNodes(): void {
         this.items = new Map([...this.items.entries()].sort())
     }
 
-    private nodeOverwritte(id: string) {
+    private nodeOverwritte(id: string): void {
         const found: string[] = []
         this.nodes.forEach((item) => {
             if (item.id === id) found.push(item.iid)
@@ -46,12 +43,12 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private refresh() {
+    private refresh(): void {
         this._onDidChangeTreeData.fire()
     }
 
     // compruba que los nodos sean los mismos y si son asi compruba que su estado haya cambiado
-    private chechNodeState(n: NodeEmitter, node: NodeEmitter) {
+    private chechNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
             if (n.state !== node.state) this.refresh()
             else return true
@@ -61,7 +58,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // se ejecuta siempre que ya esten registrados, osea todo el flujo va por aca las proximas veces, los nodos y reemplaza los ids duplicados
-    private checkNodes(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem) {
+    private checkNodes(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem): boolean {
         if (n.id === node.id) {
             this.nodeOverwritte(node.id)
             this.nodeAdd(node, nodeItem)
@@ -73,11 +70,11 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return false
     }
 
-    private createNodeChilds(node: NodeEmitter) {
+    private createNodeChilds(node: NodeEmitter): NodeItem[] {
         const nodeChilds: NodeItem[] = []
         Object.keys(node).forEach((key) => {
             const itemIsObj = isObject(node[key])
-            const icon = itemIsObj ? 'prop_ext' : 'prop'
+            const icon = itemIsObj ? 'propExt' : 'prop'
             let childs: NodeItem[] = []
             if (itemIsObj) {
                 childs = this.createNodeChilds(node[key])
@@ -95,13 +92,14 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return nodeChilds
     }
 
-    private async runNode() {
+    private async runNode(): Promise<void> {
         await this.node.up()
         this.node.suscribeAll((node) => {
             const nodeItem = this.createItem(node.id
                 , this.setNodeStateIcon(node.state)
                 , vscode.TreeItemCollapsibleState.Collapsed
                 , ...this.createNodeChilds(node))
+
             for (const n of this.nodes.values()) {
                 if (this.chechNodeState(n, node)) return
                 if (this.checkNodes(n, node, nodeItem)) return
@@ -113,27 +111,27 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private setNodeStateIcon(state: NODE_STATES) {
+    private setNodeStateIcon(state: NODE_STATES): string {
         let icon = ''
         switch (state) {
             case NODE_STATES.UP: {
-                icon = 'node_up'
+                icon = 'nodeUp'
                 break
             }
             case NODE_STATES.DOWN: {
-                icon = 'node_down'
+                icon = 'nodeDown'
                 break
             }
             case NODE_STATES.RUNNING: {
-                icon = 'node_running'
+                icon = 'nodeRunning'
                 break
             }
             case NODE_STATES.STOPPED: {
-                icon = 'node_stopped'
+                icon = 'nodeStopped'
                 break
             }
             case NODE_STATES.DOING_SOMETHING: {
-                icon = 'node_doing'
+                icon = 'nodeDoing'
                 break
             }
         }
@@ -141,7 +139,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return icon
     }
 
-    private addItemIcon(node: NodeItem, key: string) {
+    private addItemIcon(node: NodeItem, key: string): NodeItem {
         if (!this._assets[key]) return null
         node.iconPath = {
             light: this._assets[key]
@@ -154,7 +152,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     createItem(label: string
         , icon: string
         , collapsibleState: vscode.TreeItemCollapsibleState
-        , ...children: NodeItem[]) {
+        , ...children: NodeItem[]): NodeItem {
         const item = new NodeItem({ label, collapsibleState, children })
         this.addItemIcon(item, icon)
         return item
@@ -164,12 +162,11 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return item
     }
 
-    async getChildren(item?: NodeItem) {
+    async getChildren(item?: NodeItem): Promise<vscode.TreeItem[]> {
         if (item === undefined) {
             return Array.from(this.items.values())
         }
 
         return item.children
     }
-
 }

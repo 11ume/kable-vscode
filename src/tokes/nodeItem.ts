@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 
-interface INodeItem {
+interface NodeItemArgs {
 	label?: string
 	, collapsibleState?: vscode.TreeItemCollapsibleState
 	, command?: vscode.Command
@@ -12,7 +12,7 @@ export default class NodeItem extends vscode.TreeItem {
 	command?: vscode.Command
 	collapsibleState?: vscode.TreeItemCollapsibleState
 
-	constructor({ label, children, command, collapsibleState }: INodeItem) {
+	constructor({ label, children, command, collapsibleState }: NodeItemArgs) {
 		super(
 			label,
 			children === undefined ? vscode.TreeItemCollapsibleState.None :
