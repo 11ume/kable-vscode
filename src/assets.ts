@@ -12,4 +12,6 @@ export default {
 	, node_running: vscode.Uri.file(__dirname + '/../assets/node_running.svg')
 	, node_stopped: vscode.Uri.file(__dirname + '/../assets/node_stopped.svg')
 	, node_doing: vscode.Uri.file(__dirname + '/../assets/node_doing.svg')
+	, prop: vscode.Uri.file(__dirname + '/../assets/prop.svg')
+	, prop_ext: vscode.Uri.file(__dirname + '/../assets/prop_ext.svg')
 }

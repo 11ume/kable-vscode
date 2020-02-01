@@ -6,6 +6,10 @@ import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { Assets } from './assets'
 import { NODE_STATES } from 'kable-core/lib/node'
 
+function isObject(item: object) {
+    return (typeof item === 'object' && !Array.isArray(item) && item !== null)
+}
+
 export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
     onDidChangeTreeData: vscode.Event<NodeItem>
@@ -69,10 +73,29 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return false
     }
 
+    private createNodeChilds(node: NodeEmitter) {
+        const nodeChilds: NodeItem[] = []
+        Object.keys(node).forEach((key) => {
+            const itemIsObj = isObject(node[key])
+            const icon = itemIsObj ? 'prop_ext' : 'prop'
+            const nodeItem = this.createItem(`${itemIsObj ? key : `${key}: `} ${itemIsObj ? '' : node[key]}`
+                , icon
+                , itemIsObj
+                    ? vscode.TreeItemCollapsibleState.Collapsed
+                    : vscode.TreeItemCollapsibleState.None)
+            nodeChilds.push(nodeItem)
+        })
+
+        return nodeChilds
+    }
+
     private async runNode() {
         await this.node.up()
         this.node.suscribeAll((node) => {
-            const nodeItem = this.createItem(node.id, this.setNodeStateIcon(node), vscode.TreeItemCollapsibleState.None)
+            const nodeItem = this.createItem(node.id
+                , this.setNodeStateIcon(node.state)
+                , vscode.TreeItemCollapsibleState.Collapsed
+                , ...this.createNodeChilds(node))
             for (const n of this.nodes.values()) {
                 if (this.chechNodeState(n, node)) return
                 if (this.checkNodes(n, node, nodeItem)) return
@@ -84,9 +107,9 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private setNodeStateIcon(node: NodeEmitter) {
+    private setNodeStateIcon(state: NODE_STATES) {
         let icon = ''
-        switch (node.state) {
+        switch (state) {
             case NODE_STATES.UP: {
                 icon = 'node_up'
                 break
