@@ -1002,6 +1002,11 @@ currently-unhandled@^0.4.1:
   dependencies:
     array-find-index "^1.0.1"
 
+date-fns@^2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.9.0.tgz#d0b175a5c37ed5f17b97e2272bbc1fa5aec677d2"
+  integrity sha512-khbFLu/MlzLjEzy9Gh8oY1hNt/Dvxw3J6Rbc28cVoYWQaC1S3YI4xwkF9ZWcjDLscbZlY9hISMr66RFzZagLsA==
+
 date-time@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/date-time/-/date-time-2.1.0.tgz#0286d1b4c769633b3ca13e1e62558d2dbdc2eba2"
@@ -1988,7 +1993,7 @@ json5@^2.1.0:
 
 "kable-core@git+https://github.com/11ume/kable-core.git":
   version "0.0.1"
-  resolved "git+https://github.com/11ume/kable-core.git#6ad54513822bc02561e833e7989081eac4f8632a"
+  resolved "git+https://github.com/11ume/kable-core.git#55e83c18f870843c41c9171fed34d38687799e88"
   dependencies:
     "@msgpack/msgpack" "^1.11.0"
     "@types/ip" "^1.1.0"

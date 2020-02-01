@@ -2,9 +2,9 @@ import * as vscode from 'vscode'
 
 interface NodeItemArgs {
 	label?: string
-	, collapsibleState?: vscode.TreeItemCollapsibleState
-	, command?: vscode.Command
-	, children?: vscode.TreeItem[]
+	; collapsibleState?: vscode.TreeItemCollapsibleState
+	; command?: vscode.Command
+	; children?: vscode.TreeItem[];
 }
 
 export default class NodeItem extends vscode.TreeItem {

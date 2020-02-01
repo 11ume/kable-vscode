@@ -13,4 +13,5 @@ export default {
 	, nodeDoing: vscode.Uri.file(__dirname + '/../assets/node_doing.svg')
 	, prop: vscode.Uri.file(__dirname + '/../assets/prop.svg')
 	, propExt: vscode.Uri.file(__dirname + '/../assets/prop_ext.svg')
+	, clock: vscode.Uri.file(__dirname + '/../assets/clock.svg')
 }

@@ -6,6 +6,7 @@ import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { NODE_STATES } from 'kable-core/lib/node'
 import { Assets } from './assets'
 import { isObject } from './utils'
+import fromUnixTime from 'date-fns/fromUnixTime'
 
 export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
@@ -22,6 +23,10 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.runNode()
     }
 
+    private refresh(): void {
+        this._onDidChangeTreeData.fire()
+    }
+
     private nodeAdd(node: NodeEmitter, nodeItem: NodeItem): void {
         this.items.set(node.iid, nodeItem)
         this.nodes.set(node.iid, node)
@@ -31,6 +36,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.items = new Map([...this.items.entries()].sort())
     }
 
+    // toma los nodos que posean ids que ya se encuentran registras y los reemplaza por las nuevas iid
     private nodeOverwritte(id: string): void {
         const found: string[] = []
         this.nodes.forEach((item) => {
@@ -43,11 +49,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private refresh(): void {
-        this._onDidChangeTreeData.fire()
-    }
-
-    // compruba que los nodos sean los mismos y si son asi compruba que su estado haya cambiado
+    // comprueba que los nodos sean los mismos, de ser asi, corrobora que su estado haya mutado
     private chechNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
             if (n.state !== node.state) this.refresh()
@@ -57,7 +59,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return false
     }
 
-    // se ejecuta siempre que ya esten registrados, osea todo el flujo va por aca las proximas veces, los nodos y reemplaza los ids duplicados
+    // se ejecuta siempre que los nodos ya esten registrados, osea todo el flujo va por aca las proximas veces, los nodos y reemplaza los ids duplicados
     private checkNodes(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem): boolean {
         if (n.id === node.id) {
             this.nodeOverwritte(node.id)
@@ -70,24 +72,41 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return false
     }
 
+    private makeChildItemName(itemIsObj: boolean, node: NodeEmitter, key: string): string {
+        return `${itemIsObj ? key : `${key}: `} ${itemIsObj ? '' : node[key]}`
+    }
+
+    private setNodeChildIcon(key: string, itemIsObj: boolean): string {
+        if (key === 'time') return 'clock'
+        return itemIsObj ? 'propExt' : 'prop'
+    }
+
+    private setNodeTimeStampToDate(node: NodeEmitter, key: string): Date {
+        return fromUnixTime(node[key])
+    }
+
     private createNodeChilds(node: NodeEmitter): NodeItem[] {
         const nodeChilds: NodeItem[] = []
-        Object.keys(node).forEach((key) => {
+        for (const key in node) {
             const itemIsObj = isObject(node[key])
-            const icon = itemIsObj ? 'propExt' : 'prop'
+            const icon = this.setNodeChildIcon(key, itemIsObj)
             let childs: NodeItem[] = []
+            if (key === 'time') {
+                node[key] = this.setNodeTimeStampToDate(node, key)
+            }
+
             if (itemIsObj) {
                 childs = this.createNodeChilds(node[key])
             }
 
-            const nodeItem = this.createItem(`${itemIsObj ? key : `${key}: `} ${itemIsObj ? '' : node[key]}`
+            const nodeItem = this.createItem(this.makeChildItemName(itemIsObj, node, key)
                 , icon
                 , itemIsObj
                     ? vscode.TreeItemCollapsibleState.Collapsed
                     : vscode.TreeItemCollapsibleState.None
                 , ...childs)
             nodeChilds.push(nodeItem)
-        })
+        }
 
         return nodeChilds
     }
