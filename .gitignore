@@ -5,3 +5,4 @@ node_modules
 *.vsix
 *.asc
 package-lock.json
+/tsconfig.tsbuildinfo

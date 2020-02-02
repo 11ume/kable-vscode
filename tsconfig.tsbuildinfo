@@ -322,7 +322,7 @@
         "signature": "b48640c615edeac46a37fa4c3f9427539c7b0c9c9dced07d374dcec44fc4ffb7"
       },
       "./src/provider.ts": {
-        "version": "7e9e95a97fa992e907a26d60fb86e844c88d691bd727527430e4bbc1c5bd6fad",
+        "version": "51bdab4cd1094ef44df0572f0342c8534545203c48ee8dd30f4900d84d73cebf",
         "signature": "6ae45bd16edbb6134dbc0a265920c82f54bb7c4cf91570428885d6481aaf28af"
       },
       "./src/extension.ts": {
@@ -2744,7 +2744,7 @@
       "./src/utils.ts",
       "./node_modules/date-fns/typings.d.ts",
       "./node_modules/clipboardy/index.d.ts",
-      "./src/provider.ts",
+      "./src/extension.ts",
       "./node_modules/@types/color-name/index.d.ts",
       "./node_modules/@types/eslint-visitor-keys/index.d.ts",
       "./node_modules/@types/node/globals.d.ts",
@@ -2797,7 +2797,7 @@
       "./node_modules/@types/glob/index.d.ts",
       "./node_modules/@types/ip/index.d.ts",
       "./node_modules/@types/json-schema/index.d.ts",
-      "./src/extension.ts"
+      "./src/provider.ts"
     ]
   },
   "version": "3.7.5"

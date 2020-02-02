@@ -50,22 +50,6 @@
                 }
             },
             {
-                "command": "extension.treeview.pinNode",
-                "title": "Pin only",
-                "icon": {
-                    "dark": "assets/pin.svg",
-                    "light": "assets/pin.svg"
-                }
-            },
-            {
-                "command": "extension.treeview.showNodes",
-                "title": "Show Nodes",
-                "icon": {
-                    "dark": "assets/nodes.svg",
-                    "light": "assets/nodes.svg"
-                }
-            },
-            {
                 "command": "extension.treeview.copyItemInfoToClipboard",
                 "title": "Copy to clipboard",
                 "icon": {
@@ -88,16 +72,6 @@
                 }
             ],
             "view/item/context": [
-                {
-                    "command": "extension.treeview.pinNode",
-                    "group": "inline",
-                    "when": "view == nodeViewer && viewItem == nodeTree"
-                },
-                {
-                    "command": "extension.treeview.showNodes",
-                    "group": "inline",
-                    "when": "view == nodeViewer && viewItem == nodeTree"
-                },
                 {
                     "command": "extension.treeview.copyItemInfoToClipboard",
                     "group": "inline",

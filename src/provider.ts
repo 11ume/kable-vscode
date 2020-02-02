@@ -78,7 +78,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     private makeChildItemName(itemIsObj: boolean, node: NodeEmitter, key: string): string {
-        return `${itemIsObj ? key : `${key}: `} ${itemIsObj ? '' : node[key]}`
+        return `${itemIsObj ? key : `${key}:`} ${itemIsObj ? '' : node[key]}`
     }
 
     // Select an custom node child icon for node tree properties
