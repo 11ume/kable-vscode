@@ -32,20 +32,29 @@
         },
         "commands": [
             {
-                "command": "extension.treeview.freeze",
-                "title": "Freeze all nodes",
+                "command": "extension.treeview.pin",
+                "title": "Pin all",
                 "category": "TreeView",
                 "icon": {
-                    "dark": "assets/freeze.svg",
-                    "light": "assets/freeze.svg"
+                    "dark": "assets/pin.svg",
+                    "light": "assets/pin.svg"
                 }
             },
             {
-                "command": "extension.treeview.freezeNode",
-                "title": "Freeze this node",
+                "command": "extension.treeview.unpin",
+                "title": "Unpin all",
+                "category": "TreeView",
                 "icon": {
-                    "dark": "assets/freeze.svg",
-                    "light": "assets/freeze.svg"
+                    "dark": "assets/unpin.svg",
+                    "light": "assets/unpin.svg"
+                }
+            },
+            {
+                "command": "extension.treeview.pinNode",
+                "title": "Pin only",
+                "icon": {
+                    "dark": "assets/pin.svg",
+                    "light": "assets/pin.svg"
                 }
             },
             {
@@ -55,24 +64,42 @@
                     "dark": "assets/nodes.svg",
                     "light": "assets/nodes.svg"
                 }
+            },
+            {
+                "command": "extension.treeview.copyItemInfoToClipboard",
+                "title": "Copy to clipboard",
+                "icon": {
+                    "dark": "assets/copy.svg",
+                    "light": "assets/copy.svg"
+                }
             }
         ],
         "menus": {
             "view/title": [
                 {
-                    "command": "extension.treeview.freeze",
+                    "command": "extension.treeview.pin",
+                    "group": "navigation",
+                    "when": "view == nodeViewer"
+                },
+                {
+                    "command": "extension.treeview.unpin",
                     "group": "navigation",
                     "when": "view == nodeViewer"
                 }
             ],
             "view/item/context": [
                 {
-                    "command": "extension.treeview.freezeNode",
+                    "command": "extension.treeview.pinNode",
                     "group": "inline",
                     "when": "view == nodeViewer && viewItem == nodeTree"
                 },
                 {
                     "command": "extension.treeview.showNodes",
+                    "group": "inline",
+                    "when": "view == nodeViewer && viewItem == nodeTree"
+                },
+                {
+                    "command": "extension.treeview.copyItemInfoToClipboard",
                     "group": "inline",
                     "when": "view == nodeViewer && viewItem == nodeTree"
                 }
@@ -90,12 +117,11 @@
         "@typescript-eslint/eslint-plugin": "^2.18.0",
         "@typescript-eslint/parser": "^2.18.0",
         "eslint": "^6.8.0",
-        "tslint": "^6.0.0",
         "typescript": "^3.7.5"
     },
     "dependencies": {
+        "clipboardy": "^2.1.0",
         "date-fns": "^2.9.0",
-        "kable-core": "git+https://github.com/11ume/kable-core.git",
-        "node-fetch": "^2.6.0"
+        "kable-core": "git+https://github.com/11ume/kable-core.git"
     }
 }

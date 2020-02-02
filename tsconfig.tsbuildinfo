@@ -174,8 +174,8 @@
         "signature": "19368aaaacc9980c7a169d217af8b3077409c23ba5b7e975e03884330909de34"
       },
       "./src/tokes/nodeitem.ts": {
-        "version": "24139b6a288f7c935ecfadb41385a1a290434a223269d71974ad9d9da3f3b4f5",
-        "signature": "246c8844a86d7206d16645d5ed8a9a17f65376368a813ecd58f6d4c46faeee66"
+        "version": "8396dbef396b4a97ce6747402662f0e198a73ed8729808599858b8a22a74c8c3",
+        "signature": "c4004bb973a28f644fd4be4b6fa97d5548dbeeb46832de41220909ff0f36fa3e"
       },
       "./node_modules/kable-core/lib/constants/events.ts": {
         "version": "653d2dc58374fdfb26aa35002d4f36707a3b455402ad4dc968678312e2f37100"
@@ -317,12 +317,16 @@
         "version": "ddcd3dcb50559eaf224dcc01d091d598622095761df740b30a2bd34db667985b",
         "signature": "ddcd3dcb50559eaf224dcc01d091d598622095761df740b30a2bd34db667985b"
       },
+      "./node_modules/clipboardy/index.d.ts": {
+        "version": "b48640c615edeac46a37fa4c3f9427539c7b0c9c9dced07d374dcec44fc4ffb7",
+        "signature": "b48640c615edeac46a37fa4c3f9427539c7b0c9c9dced07d374dcec44fc4ffb7"
+      },
       "./src/provider.ts": {
-        "version": "72134f3d9a93d69bdd925db2f9af111366e9333a67998b61a458f602e1ec13f1",
-        "signature": "6a3bbdf74f91e78788da25dca44821d6af95af825bca7a9e0646c48b880e77bc"
+        "version": "7e9e95a97fa992e907a26d60fb86e844c88d691bd727527430e4bbc1c5bd6fad",
+        "signature": "6ae45bd16edbb6134dbc0a265920c82f54bb7c4cf91570428885d6481aaf28af"
       },
       "./src/extension.ts": {
-        "version": "8eca997a5eba6d9b78e8fe87eed9758c6715df5130fac6f378b1761b18cfd750",
+        "version": "bf6ea3b7dc9644164fefb401d06b1f8c0bb308d02cc0107b5e0f9178418b95a8",
         "signature": "e611adfb331b9324b55ae3bcbb0db66cb85a1918f72e4926465f21d1101c568a"
       },
       "./node_modules/@types/color-name/index.d.ts": {
@@ -1234,6 +1238,13 @@
         "./node_modules/@types/node/util.d.ts",
         "./node_modules/@types/node/ts3.5/util.d.ts"
       ],
+      "./node_modules/clipboardy/index.d.ts": [
+        "./node_modules/date-fns/typings.d.ts",
+        "./node_modules/@types/node/fs.d.ts",
+        "./node_modules/@types/node/ts3.5/fs.d.ts",
+        "./node_modules/@types/node/util.d.ts",
+        "./node_modules/@types/node/ts3.5/util.d.ts"
+      ],
       "./src/provider.ts": [
         "./node_modules/@types/vscode/index.d.ts",
         "./src/tokes/nodeitem.ts",
@@ -1244,6 +1255,7 @@
         "./src/assets.ts",
         "./src/utils.ts",
         "./node_modules/date-fns/typings.d.ts",
+        "./node_modules/clipboardy/index.d.ts",
         "./node_modules/@types/node/fs.d.ts",
         "./node_modules/@types/node/ts3.5/fs.d.ts",
         "./node_modules/@types/node/util.d.ts",
@@ -2174,6 +2186,13 @@
         "./node_modules/@types/node/util.d.ts",
         "./node_modules/@types/node/ts3.5/util.d.ts"
       ],
+      "./node_modules/clipboardy/index.d.ts": [
+        "./node_modules/date-fns/typings.d.ts",
+        "./node_modules/@types/node/fs.d.ts",
+        "./node_modules/@types/node/ts3.5/fs.d.ts",
+        "./node_modules/@types/node/util.d.ts",
+        "./node_modules/@types/node/ts3.5/util.d.ts"
+      ],
       "./src/provider.ts": [
         "./node_modules/@types/vscode/index.d.ts",
         "./src/tokes/nodeitem.ts",
@@ -2724,6 +2743,8 @@
       "./node_modules/kable-core/main.ts",
       "./src/utils.ts",
       "./node_modules/date-fns/typings.d.ts",
+      "./node_modules/clipboardy/index.d.ts",
+      "./src/provider.ts",
       "./node_modules/@types/color-name/index.d.ts",
       "./node_modules/@types/eslint-visitor-keys/index.d.ts",
       "./node_modules/@types/node/globals.d.ts",
@@ -2776,7 +2797,6 @@
       "./node_modules/@types/glob/index.d.ts",
       "./node_modules/@types/ip/index.d.ts",
       "./node_modules/@types/json-schema/index.d.ts",
-      "./src/provider.ts",
       "./src/extension.ts"
     ]
   },

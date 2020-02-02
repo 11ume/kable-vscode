@@ -7,9 +7,11 @@ import { NODE_STATES } from 'kable-core/lib/node'
 import { Assets } from './assets'
 import { isObject } from './utils'
 import fromUnixTime from 'date-fns/fromUnixTime'
+import clipboardy from 'clipboardy'
 
 interface CreateItemArgs {
-    label: string
+    id?: string
+    ; label: string
     ; icon: string
     ; contextValue?: string
     ; collapsibleState: vscode.TreeItemCollapsibleState
@@ -22,27 +24,38 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     private items: Map<string, NodeItem>
     private nodes: Map<string, NodeEmitter>
     private node: Kable
-    public isfreeze: boolean
+    public isPinned: boolean
 
     constructor(private _assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
         this.items = new Map()
         this.nodes = new Map()
         this.node = kable('vscode-ext')
-        this.isfreeze = false
+        this.isPinned = false
         this.runNode()
     }
 
-    public freeze(): void {
-        this.isfreeze = !this.isfreeze
+    public copyItemInfoToClipboard(iid: string): void {
+        for (const node of this.nodes.values()) {
+            if (node.iid === iid) {
+                clipboardy.write(JSON.stringify(node))
+                return
+            }
+        }
     }
 
+    // Pin up the node tree 
+    public pin(pin: boolean): void {
+        this.isPinned = pin
+    }
+
+    // Refresh the tree node items status
     private refresh(): void {
-        if (this.isfreeze) return
+        if (this.isPinned) return
         this._onDidChangeTreeData.fire()
     }
 
-    private nodeAdd(node: NodeEmitter, nodeItem: NodeItem): void {
+    private addNode(node: NodeEmitter, nodeItem: NodeItem): void {
         this.items.set(node.iid, nodeItem)
         this.nodes.set(node.iid, node)
     }
@@ -51,7 +64,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.items = new Map([...this.items.entries()].sort())
     }
 
-    // toma los nodos que posean ids que ya se encuentran registras y los reemplaza por las nuevas iid
+    // replace the nodes with id that are already registered
     private nodeOverwritte(id: string): void {
         const found: string[] = []
         this.nodes.forEach((item) => {
@@ -64,33 +77,11 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    // comprueba que los nodos sean los mismos, de ser asi, corrobora que su estado haya mutado
-    private chechNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
-        if (n.iid === node.iid) {
-            if (n.state !== node.state) this.refresh()
-            else return true
-        }
-
-        return false
-    }
-
-    // se ejecuta siempre que los nodos ya esten registrados, osea todo el flujo va por aca las proximas veces, los nodos y reemplaza los ids duplicados
-    private checkNodes(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem): boolean {
-        if (n.id === node.id) {
-            this.nodeOverwritte(node.id)
-            this.nodeAdd(node, nodeItem)
-            this.orderNodes()
-            this.refresh()
-            return true
-        }
-
-        return false
-    }
-
     private makeChildItemName(itemIsObj: boolean, node: NodeEmitter, key: string): string {
         return `${itemIsObj ? key : `${key}: `} ${itemIsObj ? '' : node[key]}`
     }
 
+    // Select an custom node child icon for node tree properties
     private setNodeChildIcon(key: string, itemIsObj: boolean): string {
         if (key === 'time') return 'clock'
         return itemIsObj ? 'propExt' : 'prop'
@@ -100,57 +91,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return fromUnixTime(node[key])
     }
 
-    private createNodeChilds(node: NodeEmitter): NodeItem[] {
-        const nodeChilds: NodeItem[] = []
-        for (const key in node) {
-            const itemIsObj = isObject(node[key])
-            const icon = this.setNodeChildIcon(key, itemIsObj)
-            let childs: NodeItem[] = []
-            if (key === 'time') {
-                node[key] = this.setNodeTimeStampToDate(node, key)
-            }
-
-            if (itemIsObj) {
-                childs = this.createNodeChilds(node[key])
-            }
-
-            const nodeItem = this.createItem({
-                label: this.makeChildItemName(itemIsObj, node, key)
-                , icon
-                , collapsibleState: itemIsObj
-                    ? vscode.TreeItemCollapsibleState.Collapsed
-                    : vscode.TreeItemCollapsibleState.None
-                , children: childs
-            })
-            nodeChilds.push(nodeItem)
-        }
-
-        return nodeChilds
-    }
-
-    private async runNode(): Promise<void> {
-        await this.node.up()
-        this.node.suscribeAll((node) => {
-            // create main items
-            const nodeItem = this.createItem({
-                label: node.id
-                , contextValue: 'nodeTree'
-                , icon: this.setNodeStateIcon(node.state)
-                , collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-                , children: this.createNodeChilds(node)
-            })
-
-            for (const n of this.nodes.values()) {
-                if (this.chechNodeState(n, node)) return
-                if (this.checkNodes(n, node, nodeItem)) return
-            }
-
-            this.nodeAdd(node, nodeItem)
-            this.orderNodes()
-            this.refresh()
-        })
-    }
-
+    // Select an custom node icon, the colors of the icons vary depending on the state of the node
     private setNodeStateIcon(state: NODE_STATES): string {
         let icon = ''
         switch (state) {
@@ -179,7 +120,8 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return icon
     }
 
-    private addItemIcon(node: NodeItem, key: string): NodeItem {
+    // Assign an icon to a tree item
+    private setNodeItemIcon(node: NodeItem, key: string): NodeItem {
         if (!this._assets[key]) return null
         node.iconPath = {
             light: this._assets[key]
@@ -189,23 +131,109 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return node
     }
 
-    createItem({
-        label
+    // Crate a new item of tree menu
+    private createNodeItem({
+        id
+        , label
         , icon
         , contextValue
         , collapsibleState
         , children
     }: CreateItemArgs): NodeItem {
-        const item = new NodeItem({ label, contextValue, collapsibleState, children })
-        this.addItemIcon(item, icon)
+        const item = new NodeItem({ id, label, contextValue, collapsibleState, children })
+        this.setNodeItemIcon(item, icon)
         return item
     }
 
-    getTreeItem(item: NodeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    // Crate childs of main tree items (icon) label -> childs
+    private createNodeTreeChilds(node: NodeEmitter): NodeItem[] {
+        const nodeChilds: NodeItem[] = []
+        for (const key in node) {
+            const itemIsObj = isObject(node[key])
+            const icon = this.setNodeChildIcon(key, itemIsObj)
+            let childs: NodeItem[] = []
+            if (key === 'time') {
+                node[key] = this.setNodeTimeStampToDate(node, key)
+            }
+
+            if (itemIsObj) {
+                childs = this.createNodeTreeChilds(node[key])
+            }
+
+            const nodeItem = this.createNodeItem({
+                label: this.makeChildItemName(itemIsObj, node, key)
+                , icon
+                , collapsibleState: itemIsObj
+                    ? vscode.TreeItemCollapsibleState.Collapsed
+                    : vscode.TreeItemCollapsibleState.None
+                , children: childs
+            })
+            nodeChilds.push(nodeItem)
+        }
+
+        return nodeChilds
+    }
+
+    // Crate main tree items (icon) label -> childs
+    private createNodeTreeItem(node: NodeEmitter): NodeItem {
+        return this.createNodeItem({
+            id: node.iid
+            , label: node.id
+            , contextValue: 'nodeTree'
+            , icon: this.setNodeStateIcon(node.state)
+            , collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+            , children: this.createNodeTreeChilds(node)
+        })
+    }
+
+    // Check if the nodes are registered, and if your state has mutated
+    private checkAdvertisementNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
+        if (n.iid === node.iid) {
+            if (n.state !== node.state) this.refresh()
+            else return true
+        }
+
+        return false
+    }
+
+    // Is invoked after the first time a node is announced, to check and prevent duplicate nodes
+    private checkAdvertisementNode(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem): boolean {
+        if (n.id === node.id) {
+            this.nodeOverwritte(node.id)
+            this.addNode(node, nodeItem)
+            this.orderNodes()
+            this.refresh()
+            return true
+        }
+
+        return false
+    }
+
+    // Is invoked in first time, when a not registered node is announced
+    private addNodesFirstAdvertisement(node: NodeEmitter, nodeItem: NodeItem): void {
+        this.addNode(node, nodeItem)
+        this.orderNodes()
+        this.refresh()
+    }
+
+    private async runNode(): Promise<void> {
+        await this.node.up()
+        this.node.suscribeAll((node) => {
+            const nodeItem = this.createNodeTreeItem(node)
+            for (const n of this.nodes.values()) {
+                if (this.checkAdvertisementNodeState(n, node)) return
+                if (this.checkAdvertisementNode(n, node, nodeItem)) return
+            }
+
+            this.addNodesFirstAdvertisement(node, nodeItem)
+        })
+    }
+
+    public getTreeItem(item: NodeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return item
     }
 
-    async getChildren(item?: NodeItem): Promise<vscode.TreeItem[]> {
+    public async getChildren(item?: NodeItem): Promise<vscode.TreeItem[]> {
         if (item === undefined) {
             return Array.from(this.items.values())
         }
