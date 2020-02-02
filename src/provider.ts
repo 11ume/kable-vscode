@@ -77,7 +77,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private makeChildItemName(itemIsObj: boolean, node: NodeEmitter, key: string): string {
+    private makeChildItemLabel(itemIsObj: boolean, node: NodeEmitter, key: string): string {
         return `${itemIsObj ? key : `${key}:`} ${itemIsObj ? '' : node[key]}`
     }
 
@@ -161,7 +161,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             }
 
             const nodeItem = this.createNodeItem({
-                label: this.makeChildItemName(itemIsObj, node, key)
+                label: this.makeChildItemLabel(itemIsObj, node, key)
                 , icon
                 , collapsibleState: itemIsObj
                     ? vscode.TreeItemCollapsibleState.Collapsed
