@@ -5,7 +5,7 @@ import { Kable } from 'kable-core/lib/kable'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { NODE_STATES } from 'kable-core/lib/node'
 import { Assets } from './assets'
-import { isObject } from './utils'
+import { isPlainObject } from './utils'
 import fromUnixTime from 'date-fns/fromUnixTime'
 import clipboardy from 'clipboardy'
 
@@ -15,7 +15,7 @@ interface CreateItemArgs {
     ; icon: string
     ; contextValue?: string
     ; collapsibleState: vscode.TreeItemCollapsibleState
-    ; children: NodeItem[];
+    ; children?: NodeItem[];
 }
 
 export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
@@ -24,13 +24,15 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     private items: Map<string, NodeItem>
     private nodes: Map<string, NodeEmitter>
     private node: Kable
+    private nodeId: string
     public isPinned: boolean
 
     constructor(private _assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
         this.items = new Map()
         this.nodes = new Map()
-        this.node = kable('vscode-ext')
+        this.nodeId = 'kable-vscode-ext'
+        this.node = kable(this.nodeId, { ignorable: true })
         this.isPinned = false
         this.runNode()
     }
@@ -77,12 +79,12 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private makeChildItemLabel(itemIsObj: boolean, node: NodeEmitter, key: string): string {
-        return `${itemIsObj ? key : `${key}:`} ${itemIsObj ? '' : node[key]}`
+    private setChildItemLabel(isObject: boolean, node: NodeEmitter, key: string): string {
+        return `${isObject ? key : `${key}:`} ${isObject ? '' : node[key]}`
     }
 
     // Select an custom node child icon for node tree properties
-    private setNodeChildIcon(key: string, itemIsObj: boolean): string {
+    private setChildItemIcon(key: string, itemIsObj: boolean): string {
         if (key === 'time') return 'clock'
         return itemIsObj ? 'propExt' : 'prop'
     }
@@ -145,30 +147,91 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return item
     }
 
+    private createNodeTreeItemChilds(
+        children: NodeItem[]
+        , isObject: boolean
+        , node: NodeEmitter
+        , key: string): NodeItem {
+        const icon = this.setChildItemIcon(key, isObject)
+        const item = this.createNodeItem({
+            label: this.setChildItemLabel(isObject, node, key)
+            , icon
+            , collapsibleState: isObject
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None
+            , children
+        })
+
+        return item
+    }
+
+    private handleNodeTreeChilds(isObject: boolean
+        , nodeChilds: NodeItem[]
+        , node: NodeEmitter
+        , key: string): NodeItem[] {
+        const nChilds = Array.from(nodeChilds)
+        let children: NodeItem[] = []
+        if (key === 'time') {
+            node[key] = this.setNodeTimeStampToDate(node, key)
+        }
+
+        if (Array.isArray(node[key])) {
+            children = this.createArrayNodeTreeChilds(node[key])
+            const item = this.createNodeTreeItemChilds(
+                children
+                , isObject
+                , node
+                , key)
+            nChilds.push(item)
+            return nChilds
+        }
+
+        if (isObject) {
+            children = this.createNodeTreeChilds(node[key])
+            const item = this.createNodeTreeItemChilds(
+                children
+                , isObject
+                , node
+                , key)
+            nChilds.push(item)
+            return nChilds
+        }
+
+        const item = this.createNodeTreeItemChilds(
+            children
+            , isObject
+            , node
+            , key)
+
+        nChilds.push(item)
+        return nChilds
+    }
+
     // Crate childs of main tree items (icon) label -> childs
     private createNodeTreeChilds(node: NodeEmitter): NodeItem[] {
+        let nodeChilds: NodeItem[] = []
+        for (const key in node) {
+            const isObject = isPlainObject(node[key]) || Array.isArray(node[key])
+            nodeChilds = this.handleNodeTreeChilds(isObject
+                , nodeChilds
+                , node
+                , key)
+        }
+
+        return nodeChilds
+    }
+
+    private createArrayNodeTreeChilds(node: NodeEmitter): NodeItem[] {
         const nodeChilds: NodeItem[] = []
         for (const key in node) {
-            const itemIsObj = isObject(node[key])
-            const icon = this.setNodeChildIcon(key, itemIsObj)
-            let childs: NodeItem[] = []
-            if (key === 'time') {
-                node[key] = this.setNodeTimeStampToDate(node, key)
-            }
-
-            if (itemIsObj) {
-                childs = this.createNodeTreeChilds(node[key])
-            }
-
-            const nodeItem = this.createNodeItem({
-                label: this.makeChildItemLabel(itemIsObj, node, key)
+            const icon = 'node'
+            const item = this.createNodeItem({
+                label: node[key]
                 , icon
-                , collapsibleState: itemIsObj
-                    ? vscode.TreeItemCollapsibleState.Collapsed
-                    : vscode.TreeItemCollapsibleState.None
-                , children: childs
+                , collapsibleState: vscode.TreeItemCollapsibleState.None
             })
-            nodeChilds.push(nodeItem)
+
+            nodeChilds.push(item)
         }
 
         return nodeChilds

@@ -2004,7 +2004,7 @@ json5@^2.1.0:
 
 "kable-core@git+https://github.com/11ume/kable-core.git":
   version "0.0.1"
-  resolved "git+https://github.com/11ume/kable-core.git#8eff0d8cc14d9710498e8d5997986638f1247f73"
+  resolved "git+https://github.com/11ume/kable-core.git#e3292eec517a615e1692a5aee26647f784ff9e1b"
   dependencies:
     "@msgpack/msgpack" "^1.11.0"
     "@types/ip" "^1.1.0"

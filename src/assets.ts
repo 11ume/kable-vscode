@@ -6,6 +6,7 @@ export type Assets = {
 
 export default {
 	nodeChild: vscode.Uri.file(__dirname + '/../assets/node_child.svg')
+	, node: vscode.Uri.file(__dirname + '/../assets/node.svg')
 	, nodeUp: vscode.Uri.file(__dirname + '/../assets/node_up.svg')
 	, nodeDown: vscode.Uri.file(__dirname + '/../assets/node_down.svg')
 	, nodeRunning: vscode.Uri.file(__dirname + '/../assets/node_running.svg')

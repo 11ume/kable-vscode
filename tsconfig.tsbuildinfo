@@ -170,8 +170,8 @@
         "signature": "e9102453b05f242a0f877814a928f7062c93759382969bdfb3b7cf8e0f5b6a6e"
       },
       "./src/assets.ts": {
-        "version": "2a34ba2b83302d2466a6206c22507a6a93485a153abdf79be9026f00a8ee59d1",
-        "signature": "19368aaaacc9980c7a169d217af8b3077409c23ba5b7e975e03884330909de34"
+        "version": "dfc2ee04a400f39be8b443e0faed6c9c69c64e4e69b4223fb2d161ef7e1da849",
+        "signature": "5ac7f02aa8aae22cc9c5d2a8a6579280a33bf330f9c9eec2bb3c09d7c9ca4b9a"
       },
       "./src/tokes/nodeitem.ts": {
         "version": "8396dbef396b4a97ce6747402662f0e198a73ed8729808599858b8a22a74c8c3",
@@ -211,7 +211,7 @@
         "version": "1c618198948ad9ebf40e2317024e5e75f876d5c54b8e24f7823671c656de7fc5"
       },
       "./node_modules/kable-core/lib/node.ts": {
-        "version": "5bc785ac18f62eae408b55e936427646b2e8a2890209a9b81198f45882b3bf1a"
+        "version": "b8419a9d22de31d8d662abfa9970eb364662cf3c72dbf25a34685d5a6811451d"
       },
       "./node_modules/clean-deep/src/index.d.ts": {
         "version": "282ff9ea7a396a7887e32d6efca72cdaa31ff4f6cf64a56244a818818de4b3cb",
@@ -282,7 +282,7 @@
         "signature": "66a4897206253840d222fd9d40a3509971b4703660a7a9eeac874c404d23caf2"
       },
       "./node_modules/kable-core/lib/discovery.ts": {
-        "version": "e6227d5719a4374c4ec519815f7dbffd81531ae310b2833da76ab7a2e8a09411"
+        "version": "123654e01fc7b2de68391cb33c5083ae4988b02cbac67f8ab35e06ed9b8fb10a"
       },
       "./node_modules/kable-core/lib/dependency.ts": {
         "version": "859213231ff625f0a298a598c040fd4a821f49974ed58ca7f287ca0e0cf14271"
@@ -304,14 +304,14 @@
         "version": "f9397e082560417238d5d50f4ee5bd791a66c1045e279bd905ee2453acabdb23"
       },
       "./node_modules/kable-core/lib/kable.ts": {
-        "version": "fbd3231b49cae86bd13dc7bdb44439682d908e5674f28013e8f1a1b3323035ed"
+        "version": "8ec10c641b93000be69af674cb0cf5a3cb55a5979466562b384993e4cbe0268d"
       },
       "./node_modules/kable-core/main.ts": {
         "version": "4faefdb2f98589e5ee8b33e1aeb1075cc0b75cc1cc6ee64b0ea413e0a2d15fec"
       },
       "./src/utils.ts": {
-        "version": "e4221c32e423ea45862519d8fc26b79b15d03857a144edfb9ac74cbd5b1ad85b",
-        "signature": "51ea2a4c8f2e5e50d5d96dcf8cab0b3c6e7ed4da65c4bc26985f349aaced0a8e"
+        "version": "71bf0670cc16a1f2b9b0b372e3214f2f25c696bba08134bd8c755e96ef6d7a75",
+        "signature": "a511b20886e43898cdd1778dc70e3a24de21990fa2b67fb0f573c2fe22ba7338"
       },
       "./node_modules/date-fns/typings.d.ts": {
         "version": "ddcd3dcb50559eaf224dcc01d091d598622095761df740b30a2bd34db667985b",
@@ -322,8 +322,8 @@
         "signature": "b48640c615edeac46a37fa4c3f9427539c7b0c9c9dced07d374dcec44fc4ffb7"
       },
       "./src/provider.ts": {
-        "version": "1cd69722cdd211b2c32c3cbc35a5a81fc2356de78208f39592d9fa3035b6b31b",
-        "signature": "535de40de5e400c7eb6775a9fbeecffe7b98c0154e642b044002abab0d42ee5c"
+        "version": "c6141a6cce42e32e945dafeac4aa153a7169685a6a1a8946b4bdd1a0e04442da",
+        "signature": "28679292ba7414f173dffed2bbaf228056005025989e916ec699025b4a6b7f6e"
       },
       "./src/extension.ts": {
         "version": "bf6ea3b7dc9644164fefb401d06b1f8c0bb308d02cc0107b5e0f9178418b95a8",
@@ -2702,7 +2702,6 @@
       "./node_modules/typescript/lib/lib.esnext.bigint.d.ts",
       "./node_modules/typescript/lib/lib.esnext.full.d.ts",
       "./node_modules/@types/vscode/index.d.ts",
-      "./src/assets.ts",
       "./src/tokes/nodeitem.ts",
       "./node_modules/kable-core/lib/constants/events.ts",
       "./node_modules/kable-core/lib/repository.ts",
@@ -2742,10 +2741,9 @@
       "./node_modules/kable-core/lib/store.ts",
       "./node_modules/kable-core/lib/kable.ts",
       "./node_modules/kable-core/main.ts",
+      "./src/utils.ts",
       "./node_modules/date-fns/typings.d.ts",
       "./node_modules/clipboardy/index.d.ts",
-      "./src/provider.ts",
-      "./src/extension.ts",
       "./node_modules/@types/color-name/index.d.ts",
       "./node_modules/@types/eslint-visitor-keys/index.d.ts",
       "./node_modules/@types/node/globals.d.ts",
@@ -2798,7 +2796,9 @@
       "./node_modules/@types/glob/index.d.ts",
       "./node_modules/@types/ip/index.d.ts",
       "./node_modules/@types/json-schema/index.d.ts",
-      "./src/utils.ts"
+      "./src/assets.ts",
+      "./src/extension.ts",
+      "./src/provider.ts"
     ]
   },
   "version": "3.7.5"
