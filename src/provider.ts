@@ -175,6 +175,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             node[key] = this.setNodeTimeStampToDate(node, key)
         }
 
+        // handle array values
         if (Array.isArray(node[key])) {
             children = this.createArrayNodeTreeChilds(node[key])
             const item = this.createNodeTreeItemChilds(
@@ -186,6 +187,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             return nChilds
         }
 
+        // handle for object
         if (isObject) {
             children = this.createNodeTreeChilds(node[key])
             const item = this.createNodeTreeItemChilds(
@@ -197,6 +199,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             return nChilds
         }
 
+        // handle object properties
         const item = this.createNodeTreeItemChilds(
             children
             , isObject
