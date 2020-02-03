@@ -66,7 +66,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.items = new Map([...this.items.entries()].sort())
     }
 
-    // replace the nodes with id that are already registered
+    // Replace the nodes with id that are already registered
     private nodeOverwritte(id: string): void {
         const found: string[] = []
         this.nodes.forEach((item) => {
@@ -79,6 +79,11 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
+
+    private setNodeTimeStampToDate(node: NodeEmitter, key: string): Date {
+        return fromUnixTime(node[key])
+    }
+
     private setChildItemLabel(isObject: boolean, node: NodeEmitter, key: string): string {
         return `${isObject ? key : `${key}:`} ${isObject ? '' : node[key]}`
     }
@@ -87,10 +92,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     private setChildItemIcon(key: string, itemIsObj: boolean): string {
         if (key === 'time') return 'clock'
         return itemIsObj ? 'propExt' : 'prop'
-    }
-
-    private setNodeTimeStampToDate(node: NodeEmitter, key: string): Date {
-        return fromUnixTime(node[key])
     }
 
     // Select an custom node icon, the colors of the icons vary depending on the state of the node
@@ -175,7 +176,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             node[key] = this.setNodeTimeStampToDate(node, key)
         }
 
-        // handle array values
         if (Array.isArray(node[key])) {
             children = this.createArrayNodeTreeChilds(node[key])
             const item = this.createNodeTreeItemChilds(
@@ -187,7 +187,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             return nChilds
         }
 
-        // handle for object
         if (isObject) {
             children = this.createNodeTreeChilds(node[key])
             const item = this.createNodeTreeItemChilds(
@@ -210,7 +209,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         return nChilds
     }
 
-    // Crate childs of main tree items (icon) label -> childs
+    // Crate childs items of array (icon) <object> -> keys
     private createNodeTreeChilds(node: NodeEmitter): NodeItem[] {
         let nodeChilds: NodeItem[] = []
         for (const key in node) {
@@ -220,10 +219,10 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
                 , node
                 , key)
         }
-
         return nodeChilds
     }
 
+    // Crate childs items of array (icon) <Array> -> values
     private createArrayNodeTreeChilds(node: NodeEmitter): NodeItem[] {
         const nodeChilds: NodeItem[] = []
         for (const key in node) {
@@ -233,7 +232,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
                 , icon
                 , collapsibleState: vscode.TreeItemCollapsibleState.None
             })
-
             nodeChilds.push(item)
         }
 
