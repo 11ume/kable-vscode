@@ -8,6 +8,7 @@ import { Assets } from './assets'
 import { isPlainObject } from './utils'
 import fromUnixTime from 'date-fns/fromUnixTime'
 import clipboardy from 'clipboardy'
+import deepEqual from 'fast-deep-equal'
 
 interface CreateItemArgs {
     id?: string
@@ -253,7 +254,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     // Check if the nodes are registered, and if your state has mutated
     private checkAdvertisementNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
-            if (n.state !== node.state) this.refresh()
+            if (!deepEqual(n, node)) this.refresh()
             else return true
         }
 
