@@ -63,8 +63,12 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.nodes.set(node.iid, node)
     }
 
-    private orderNodes(): void {
-        this.items = new Map([...this.items.entries()].sort())
+    private orderNodeTree(): void {
+        const items = Array.from(this.items.keys()).sort()
+        for (const key of items) {
+            const pre = this.items.get(key)
+            this.items.set(key, pre)
+        }
     }
 
     // Replace the nodes with id that are already registered
@@ -251,7 +255,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    // Check if the nodes are registered, and if your state has mutated
+    // Check if the nodes are registered, and check if any of your properties has mutated
     private checkAdvertisementNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
             if (!deepEqual(n, node)) this.refresh()
@@ -266,7 +270,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         if (n.id === node.id) {
             this.nodeOverwritte(node.id)
             this.addNode(node, nodeItem)
-            this.orderNodes()
+            this.orderNodeTree()
             this.refresh()
             return true
         }
@@ -277,7 +281,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     // Is invoked in first time, when a not registered node is announced
     private addNodesFirstAdvertisement(node: NodeEmitter, nodeItem: NodeItem): void {
         this.addNode(node, nodeItem)
-        this.orderNodes()
+        this.orderNodeTree()
         this.refresh()
     }
 
