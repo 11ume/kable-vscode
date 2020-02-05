@@ -33,8 +33,8 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
     onDidChangeTreeData: vscode.Event<NodeItem>
     public isPinned: boolean
-    private readonly items: Map<string, NodeItem>
-    private readonly nodes: Map<string, NodeEmitter>
+    private items: Map<string, NodeItem>
+    private nodes: Map<string, NodeEmitter>
     private readonly timeControl: Map<string, TimeControl>
     private readonly nodeDefaultTimeout: number
     private readonly node: Kable
@@ -103,22 +103,26 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     private orderNodeTree(): void {
+        const sortNodes: Map<string, NodeEmitter> = new Map()
+        const sortItems: Map<string, NodeItem> = new Map()
         const nodes = Array.from(this.nodes.values())
-        const nodesIdSorted: string[] = []
-        for (const node of nodes) {
-            nodesIdSorted.push(node.id)
-        }
+        const sorted = nodes.reduce((pv, cv) => {
+            pv.push(cv.id)
+            return pv
+        }, []).sort()
 
-        nodesIdSorted.sort()
-        for (const nodeId of nodesIdSorted) {
-            this.nodes.forEach((node) => {
+        sorted.forEach((nodeId) => {
+            for (const [key, node] of this.nodes.entries()) {
                 if (nodeId === node.id) {
-                    const item = this.items.get(node.iid)
-                    this.nodes.set(node.iid, node)
-                    this.items.set(node.iid, item)
+                    const item = this.items.get(key)
+                    sortNodes.set(key, node)
+                    sortItems.set(key, item)
                 }
-            })
-        }
+            }
+        })
+
+        this.nodes = sortNodes
+        this.items = sortItems
     }
 
     // cant exits diferents node iid whit same id, ej: when an node process is restarted
