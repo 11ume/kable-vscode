@@ -73,6 +73,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     // Refresh the tree node items status
     private refresh(): void {
         if (this.isPinned) return
+        this.orderNodeTree()
         this._onDidChangeTreeData.fire()
     }
 
@@ -101,13 +102,24 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.nodes.delete(id)
     }
 
-    // private orderNodeTree(): void {
-    //     const items = Array.from(this.items.keys()).sort()
-    //     for (const key of items) {
-    //         const pre = this.items.get(key)
-    //         this.items.set(key, pre)
-    //     }
-    // }
+    private orderNodeTree(): void {
+        const nodes = Array.from(this.nodes.values())
+        const nodesIdSorted: string[] = []
+        for (const node of nodes) {
+            nodesIdSorted.push(node.id)
+        }
+
+        nodesIdSorted.sort()
+        for (const nodeId of nodesIdSorted) {
+            this.nodes.forEach((node) => {
+                if (nodeId === node.id) {
+                    const item = this.items.get(node.iid)
+                    this.nodes.set(node.iid, node)
+                    this.items.set(node.iid, item)
+                }
+            })
+        }
+    }
 
     // cant exits diferents node iid whit same id, ej: when an node process is restarted
     private removeNodeAndItemById(id: string): void {
@@ -316,7 +328,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         if (n.id === node.id) {
             this.removeNodeAndItemById(node.id)
             this.addNode(node, nodeItem)
-            // this.orderNodeTree()
             this.refresh()
             return true
         }
@@ -327,7 +338,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     // Is invoked in first time, when a not registered node is announced
     private addNodesFirstAdvertisement(node: NodeEmitter, nodeItem: NodeItem): void {
         this.addNode(node, nodeItem)
-        // this.orderNodeTree()
         this.refresh()
     }
 
