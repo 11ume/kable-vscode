@@ -5,14 +5,15 @@ import { Kable } from 'kable-core/lib/kable'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { NODE_STATES } from 'kable-core/lib/node'
 import { Assets } from './assets'
-import { isPlainObject } from './utils'
+import { isPlainObject, getDateNow } from './utils'
 import fromUnixTime from 'date-fns/fromUnixTime'
 import clipboardy from 'clipboardy'
 import deepEqual from 'fast-deep-equal'
+import createIntervalHandler, { IntervalHandler } from 'interval-handler'
 
 interface CreateItemArgs {
     id?: string
-    ; label: string
+    ; label?: string
     ; icon: string
     ; contextValue?: string
     ; collapsibleState: vscode.TreeItemCollapsibleState
@@ -22,19 +23,29 @@ interface CreateItemArgs {
 export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
     onDidChangeTreeData: vscode.Event<NodeItem>
-    private items: Map<string, NodeItem>
-    private nodes: Map<string, NodeEmitter>
-    private node: Kable
-    private nodeId: string
     public isPinned: boolean
+    private readonly items: Map<string, NodeItem>
+    private readonly nodes: Map<string, NodeEmitter>
+    private readonly timeControl: Map<string, { iid: string; time: number }>
+    private readonly node: Kable
+    private readonly nodeId: string
+    private readonly nodeTimeout: number
+    private readonly ihNodeTimeout: IntervalHandler
+    private loadingItem: NodeItem
 
     constructor(private _assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
+        this.isPinned = false
         this.items = new Map()
         this.nodes = new Map()
+        this.timeControl = new Map()
+
         this.nodeId = 'kable-vscode-ext'
         this.node = kable(this.nodeId, { ignorable: true })
-        this.isPinned = false
+        this.nodeTimeout = 4000
+        this.ihNodeTimeout = createIntervalHandler(this.nodeTimeout, () => this.checkNodeTimeout())
+
+        this.setWaitingIcon()
         this.runNode()
     }
 
@@ -58,9 +69,49 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this._onDidChangeTreeData.fire()
     }
 
+    private setWaitingIcon(): void {
+        this.loadingItem = this.createNodeItem({
+            id: 'waiting'
+            , label: 'waiting for nodes'
+            , icon: 'waiting'
+            , collapsibleState: vscode.TreeItemCollapsibleState.None
+        })
+
+        this.items.set(this.loadingItem.id, this.loadingItem)
+    }
+
+    private checkNodeTimeout(): void {
+        if (this.items.size === 1) return
+        for (const control of this.timeControl.values()) {
+            const timeElapsed = Math.abs(control.time - getDateNow())
+            const timeOut = Math.abs(this.nodeTimeout / 1000)
+            if (timeElapsed >= timeOut) {
+                this.removeNodeAndItem(control.iid)
+
+                // remove time control
+                this.timeControl.delete(control.iid)
+            }
+        }
+
+        if (this.items.size < 1) {
+            this.setWaitingIcon()
+            this.refresh()
+        }
+    }
+
     private addNode(node: NodeEmitter, nodeItem: NodeItem): void {
         this.items.set(node.iid, nodeItem)
         this.nodes.set(node.iid, node)
+    }
+
+    private removeNodeItem(id: string): void {
+        this.items.delete(id)
+    }
+
+    private removeNodeAndItem(id: string): void {
+        this.items.delete(id)
+        this.nodes.delete(id)
+        this.timeControl.delete(id)
     }
 
     private orderNodeTree(): void {
@@ -148,7 +199,14 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         , collapsibleState
         , children
     }: CreateItemArgs): NodeItem {
-        const item = new NodeItem({ id, label, contextValue, collapsibleState, children })
+        const item = new NodeItem({
+            id
+            , label
+            , contextValue
+            , collapsibleState
+            , children
+        })
+
         this.setNodeItemIcon(item, icon)
         return item
     }
@@ -287,9 +345,18 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
 
     private async runNode(): Promise<void> {
         await this.node.up()
+        this.ihNodeTimeout.start()
         this.node.suscribeAll((node) => {
+            this.removeNodeItem(this.loadingItem.id)
+
             const nodeItem = this.createNodeTreeItem(node)
             for (const n of this.nodes.values()) {
+                // add time control
+                this.timeControl.set(node.iid, {
+                    iid: node.iid
+                    , time: getDateNow()
+                })
+
                 if (this.checkAdvertisementNodeState(n, node)) return
                 if (this.checkAdvertisementNode(n, node, nodeItem)) return
             }
