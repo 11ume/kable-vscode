@@ -23,6 +23,7 @@ interface CreateItemArgs {
 type TimeControl = {
     id: string
     ; iid: string
+    ; state: NODE_STATES
     ; interval: IntervalHandler
     ; lastSeen: number
     ; nodeTimeout: number;
@@ -335,6 +336,11 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             const timeElapsed = Math.abs(control.lastSeen - getDateNow())
             const timeOut = Math.abs(control.nodeTimeout / 1000)
             if (timeElapsed >= timeOut) {
+                if (control.state === NODE_STATES.DOWN) {
+                    this.removeTimeoutControl(control.iid)
+                    return
+                }
+
                 this.removeNodeAndItem(control.iid)
                 this.removeTimeoutControl(control.iid)
                 this.refresh()
@@ -356,7 +362,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
 
     private addNodeItemTimeoutControl(node: NodeEmitter): void {
         const control = this.timeControl.get(node.iid)
-        if (control) {
+        if (control && node.state !== NODE_STATES.DOWN) {
             control.lastSeen = getDateNow()
             return
         }
@@ -370,6 +376,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.timeControl.set(node.iid, {
             id: node.id
             , iid: node.iid
+            , state: node.state
             , interval
             , nodeTimeout
             , lastSeen: getDateNow()
