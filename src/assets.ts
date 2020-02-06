@@ -15,4 +15,5 @@ export default {
 	, prop: vscode.Uri.file(__dirname + '/../assets/prop.svg')
 	, propExt: vscode.Uri.file(__dirname + '/../assets/prop_ext.svg')
 	, clock: vscode.Uri.file(__dirname + '/../assets/clock.svg')
+	, waiting: vscode.Uri.file(__dirname + '/../assets/waiting.gif')
 }

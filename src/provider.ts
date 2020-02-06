@@ -5,36 +5,54 @@ import { Kable } from 'kable-core/lib/kable'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { NODE_STATES } from 'kable-core/lib/node'
 import { Assets } from './assets'
-import { isPlainObject } from './utils'
+import { isPlainObject, getDateNow } from './utils'
 import fromUnixTime from 'date-fns/fromUnixTime'
 import clipboardy from 'clipboardy'
 import deepEqual from 'fast-deep-equal'
+import createIntervalHandler, { IntervalHandler } from 'interval-handler'
 
 interface CreateItemArgs {
     id?: string
-    ; label: string
+    ; label?: string
     ; icon: string
     ; contextValue?: string
     ; collapsibleState: vscode.TreeItemCollapsibleState
     ; children?: NodeItem[];
 }
 
+type TimeControl = {
+    id: string
+    ; iid: string
+    ; state: NODE_STATES
+    ; interval: IntervalHandler
+    ; lastSeen: number
+    ; nodeTimeout: number;
+}
+
 export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
     onDidChangeTreeData: vscode.Event<NodeItem>
+    public isPinned: boolean
     private items: Map<string, NodeItem>
     private nodes: Map<string, NodeEmitter>
-    private node: Kable
-    private nodeId: string
-    public isPinned: boolean
+    private readonly timeControl: Map<string, TimeControl>
+    private readonly nodeDefaultTimeout: number
+    private readonly node: Kable
+    private readonly nodeId: string
+    private readonly waitingItem: NodeItem
 
     constructor(private _assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
+        this.isPinned = false
         this.items = new Map()
         this.nodes = new Map()
+        this.timeControl = new Map()
+        this.nodeDefaultTimeout = 1000
+
         this.nodeId = 'kable-vscode-ext'
         this.node = kable(this.nodeId, { ignorable: true })
-        this.isPinned = false
+        this.waitingItem = this.creteWaitingItem()
+        this.addWaitingItem()
         this.runNode()
     }
 
@@ -53,9 +71,25 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Refresh the tree node items status
-    private refresh(): void {
+    private refresh(waiting = false): void {
         if (this.isPinned) return
+        this.orderNodeTree()
+        waiting && this.addWaitingItem()
         this._onDidChangeTreeData.fire()
+    }
+
+    private creteWaitingItem(): NodeItem {
+        const id = 'waiting'
+        return this.createNodeItem({
+            id
+            , label: 'waiting for nodes'
+            , icon: id
+            , collapsibleState: vscode.TreeItemCollapsibleState.None
+        })
+    }
+
+    private addWaitingItem(): void {
+        this.items.set(this.waitingItem.id, this.waitingItem)
     }
 
     private addNode(node: NodeEmitter, nodeItem: NodeItem): void {
@@ -63,16 +97,44 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.nodes.set(node.iid, node)
     }
 
-    private orderNodeTree(): void {
-        const items = Array.from(this.items.keys()).sort()
-        for (const key of items) {
-            const pre = this.items.get(key)
-            this.items.set(key, pre)
-        }
+    private removeNodeItem(key: string): void {
+        this.items.delete(key)
     }
 
-    // Replace the nodes with id that are already registered
-    private nodeOverwritte(id: string): void {
+    private removeLoadingItem(): void {
+        this.removeNodeItem(this.waitingItem.id)
+    }
+
+    private removeNodeAndItem(id: string): void {
+        this.items.delete(id)
+        this.nodes.delete(id)
+    }
+
+    private orderNodeTree(): void {
+        const sortNodes: Map<string, NodeEmitter> = new Map()
+        const sortItems: Map<string, NodeItem> = new Map()
+        const nodes = Array.from(this.nodes.values())
+        const sorted = nodes.reduce((pv, cv) => {
+            pv.push(cv.id)
+            return pv
+        }, []).sort()
+
+        sorted.forEach((nodeId) => {
+            for (const [key, node] of this.nodes.entries()) {
+                if (nodeId === node.id) {
+                    const item = this.items.get(key)
+                    sortNodes.set(key, node)
+                    sortItems.set(key, item)
+                }
+            }
+        })
+
+        this.nodes = sortNodes
+        this.items = sortItems
+    }
+
+    // cant exits diferents node iid whit same id, ej: when an node process is restarted
+    private removeNodeAndItemById(id: string): void {
         const found: string[] = []
         this.nodes.forEach((item) => {
             if (item.id === id) found.push(item.iid)
@@ -83,7 +145,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             this.items.delete(i)
         })
     }
-
 
     private setNodeTimeStampToDate(node: NodeEmitter, key: string): Date {
         return fromUnixTime(node[key])
@@ -148,7 +209,14 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         , collapsibleState
         , children
     }: CreateItemArgs): NodeItem {
-        const item = new NodeItem({ id, label, contextValue, collapsibleState, children })
+        const item = new NodeItem({
+            id
+            , label
+            , contextValue
+            , collapsibleState
+            , children
+        })
+
         this.setNodeItemIcon(item, icon)
         return item
     }
@@ -256,21 +324,33 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Check if the nodes are registered, and check if any of your properties has mutated
-    private checkAdvertisementNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
+    private checkAdvertisementNodeChanges(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
-            if (!deepEqual(n, node)) this.refresh()
-            else return true
+            const preNode = { ...node }
+            const preN = { ...n }
+            // any thinkgs can be normally variables
+            delete preN.event
+            delete preN.rinfo
+            delete preN.stateData
+
+            delete preNode.event
+            delete preNode.rinfo
+            delete preNode.stateData
+
+            if (deepEqual(preN, preNode)) return true
+            else {
+                this.refresh()
+            }
         }
 
         return false
     }
 
     // Is invoked after the first time a node is announced, to check and prevent duplicate nodes
-    private checkAdvertisementNode(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem): boolean {
+    private checkAdvertisementNodeId(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem): boolean {
         if (n.id === node.id) {
-            this.nodeOverwritte(node.id)
+            this.removeNodeAndItemById(node.id)
             this.addNode(node, nodeItem)
-            this.orderNodeTree()
             this.refresh()
             return true
         }
@@ -281,17 +361,70 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     // Is invoked in first time, when a not registered node is announced
     private addNodesFirstAdvertisement(node: NodeEmitter, nodeItem: NodeItem): void {
         this.addNode(node, nodeItem)
-        this.orderNodeTree()
         this.refresh()
+    }
+
+    private checkNodeItemTimeoutControl(): void {
+        for (const control of this.timeControl.values()) {
+            const timeElapsed = Math.abs(control.lastSeen - getDateNow())
+            const timeOut = Math.abs(control.nodeTimeout / 1000)
+            if (timeElapsed >= timeOut) {
+                if (control.state === NODE_STATES.DOWN) {
+                    this.removeTimeoutControl(control.iid)
+                    return
+                }
+
+                this.removeNodeAndItem(control.iid)
+                this.removeTimeoutControl(control.iid)
+                this.refresh()
+            }
+        }
+
+        // if items is empty, start to waiting for nodes
+        if (this.items.size < 1) {
+            this.refresh(true)
+        }
+    }
+
+    private removeTimeoutControl(iid: string): void {
+        const controller = this.timeControl.get(iid)
+        controller.interval.stop()
+        this.timeControl.delete(iid)
+    }
+
+    private addNodeItemTimeoutControl(node: NodeEmitter): void {
+        const control = this.timeControl.get(node.iid)
+        if (control && node.state !== NODE_STATES.DOWN) {
+            control.lastSeen = getDateNow()
+            return
+        }
+
+        const nodeTimeout = node.adTime + this.nodeDefaultTimeout
+        const interval = createIntervalHandler(nodeTimeout, () => {
+            this.checkNodeItemTimeoutControl()
+        })
+        interval.start()
+
+        this.timeControl.set(node.iid, {
+            id: node.id
+            , iid: node.iid
+            , state: node.state
+            , interval
+            , nodeTimeout
+            , lastSeen: getDateNow()
+        })
     }
 
     private async runNode(): Promise<void> {
         await this.node.up()
         this.node.suscribeAll((node) => {
+            this.removeLoadingItem()
+
             const nodeItem = this.createNodeTreeItem(node)
             for (const n of this.nodes.values()) {
-                if (this.checkAdvertisementNodeState(n, node)) return
-                if (this.checkAdvertisementNode(n, node, nodeItem)) return
+                this.addNodeItemTimeoutControl(node)
+                if (this.checkAdvertisementNodeChanges(n, node)) return
+                if (this.checkAdvertisementNodeId(n, node, nodeItem)) return
             }
 
             this.addNodesFirstAdvertisement(node, nodeItem)
