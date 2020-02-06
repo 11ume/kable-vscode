@@ -326,10 +326,21 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     // Check if the nodes are registered, and check if any of your properties has mutated
     private checkAdvertisementNodeChanges(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
-            if (!deepEqual(n, node)) {
+            const preNode = { ...node }
+            const preN = { ...n }
+            // any thinkgs can be normally variables
+            delete preN.event
+            delete preN.rinfo
+            delete preN.stateData
+
+            delete preNode.event
+            delete preNode.rinfo
+            delete preNode.stateData
+
+            if (deepEqual(preN, preNode)) return true
+            else {
                 this.refresh()
             }
-            else return true
         }
 
         return false
