@@ -5,9 +5,9 @@ import fromUnixTime from 'date-fns/fromUnixTime'
 import createIntervalHandler, { IntervalHandler } from 'interval-handler'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { NODE_STATES } from 'kable-core/lib/node'
-import { Assets } from './assets'
-import NodeItem from './tokes/nodeItem'
-import { isPlainObject, getDateNow } from './utils'
+import { Assets } from '../assets'
+import NodeItem from './nodeItem'
+import { isPlainObject, getDateNow, removeVariables } from '../utils'
 
 interface CreateItemArgs {
     id?: string
@@ -317,21 +317,20 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
+    // any thinkgs can be normally variables
+    private removeVariables(n: NodeEmitter, node: NodeEmitter): { partialN: Partial<NodeEmitter>; partialNode: Partial<NodeEmitter> } {
+        const variables = ['event', 'rinfo', 'stateData']
+        return {
+            partialN: removeVariables(n, variables)
+            , partialNode: removeVariables(node, variables)
+        }
+    }
+
     // Check if the nodes are registered, and check if any of your properties has mutated
     private checkAdvertisementNodeChanges(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
-            const preNode = { ...node }
-            const preN = { ...n }
-            // any thinkgs can be normally variables
-            delete preN.event
-            delete preN.rinfo
-            delete preN.stateData
-
-            delete preNode.event
-            delete preNode.rinfo
-            delete preNode.stateData
-
-            if (deepEqual(preN, preNode)) return true
+            const { partialN, partialNode } = this.removeVariables(n, node)
+            if (deepEqual(partialN, partialNode)) return true
             else {
                 this.refresh()
             }
@@ -348,7 +347,6 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
             this.refresh()
             return true
         }
-
         return false
     }
 
@@ -411,7 +409,6 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
 
     public onChanges(node: NodeEmitter): void {
         this.removeLoadingItem()
-
         const nodeItem = this.createNodeTreeItem(node)
         for (const n of this.nodes.values()) {
             this.addNodeItemTimeoutControl(node)
@@ -430,7 +427,6 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
         if (item === undefined) {
             return Array.from(this.items.values())
         }
-
         return item.children
     }
 }

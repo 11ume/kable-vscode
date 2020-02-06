@@ -1,11 +1,29 @@
-import { NodeEmitter } from 'kable-core/lib/eventsDriver';
 import * as vscode from 'vscode'
-import { NodeProvider } from './provider'
-import { KableNodeExtension } from './kableNodeExtension'
+import { NodeEmitter } from 'kable-core/lib/eventsDriver'
+import { NodeProvider } from './provider/provider'
+import NodeExtension from './extension/nodeExtension'
+import OutputChannel from './extension/outputChannel'
 import assets from './assets'
 
+async function startNodeExtesion(
+    outputChannel: OutputChannel
+    , nodeExtension: NodeExtension
+    , nodeProvider: NodeProvider
+): Promise<void> {
+    try {
+        nodeExtension.node.up()
+        const providerSuscriber = (node: NodeEmitter): void => {
+            nodeProvider.onChanges.call(nodeProvider, node)
+        }
+        nodeExtension.node.suscribeAll(providerSuscriber)
+    } catch (err) {
+        outputChannel.appendLineError(err)
+    }
+}
+
 export async function activate(): Promise<void> {
-    const { node } = new KableNodeExtension()
+    const nodeExtension = new NodeExtension('kable-vscode-extension')
+    const outputChannel = new OutputChannel('kable')
     const nodeProvider = new NodeProvider(assets)
     vscode.window.registerTreeDataProvider('nodeViewer', nodeProvider)
     vscode.commands.registerCommand('extension.treeview.pin', () => {
@@ -20,13 +38,5 @@ export async function activate(): Promise<void> {
         nodeProvider.copyItemInfoToClipboard(payload.id)
     })
 
-    const out = vscode.window.createOutputChannel('kable')
-
-    await node.up()
-    const providerSuscriber = (node: NodeEmitter): void => {
-        nodeProvider.onChanges.call(nodeProvider, node)
-        out.appendLine(`${node.id} ${node.state}`)
-    }
-
-    node.suscribeAll(providerSuscriber)
+    startNodeExtesion(outputChannel, nodeExtension, nodeProvider)
 }
