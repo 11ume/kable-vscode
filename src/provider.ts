@@ -39,7 +39,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     private readonly nodeDefaultTimeout: number
     private readonly node: Kable
     private readonly nodeId: string
-    private loadingItem: NodeItem
+    private readonly waitingItem: NodeItem
 
     constructor(private _assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
@@ -51,8 +51,8 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
 
         this.nodeId = 'kable-vscode-ext'
         this.node = kable(this.nodeId, { ignorable: true })
-
-        this.setWaitingIcon()
+        this.waitingItem = this.creteWaitingItem()
+        this.addWaitingItem()
         this.runNode()
     }
 
@@ -71,21 +71,25 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Refresh the tree node items status
-    private refresh(): void {
+    private refresh(waiting = false): void {
         if (this.isPinned) return
         this.orderNodeTree()
+        waiting && this.addWaitingItem()
         this._onDidChangeTreeData.fire()
     }
 
-    private setWaitingIcon(): void {
-        this.loadingItem = this.createNodeItem({
-            id: 'waiting'
+    private creteWaitingItem(): NodeItem {
+        const id = 'waiting'
+        return this.createNodeItem({
+            id
             , label: 'waiting for nodes'
-            , icon: 'waiting'
+            , icon: id
             , collapsibleState: vscode.TreeItemCollapsibleState.None
         })
+    }
 
-        this.items.set(this.loadingItem.id, this.loadingItem)
+    private addWaitingItem(): void {
+        this.items.set(this.waitingItem.id, this.waitingItem)
     }
 
     private addNode(node: NodeEmitter, nodeItem: NodeItem): void {
@@ -93,8 +97,12 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.nodes.set(node.iid, node)
     }
 
-    private removeNodeItem(iid: string): void {
-        this.items.delete(iid)
+    private removeNodeItem(key: string): void {
+        this.items.delete(key)
+    }
+
+    private removeLoadingItem(): void {
+        this.removeNodeItem(this.waitingItem.id)
     }
 
     private removeNodeAndItem(id: string): void {
@@ -316,7 +324,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Check if the nodes are registered, and check if any of your properties has mutated
-    private checkAdvertisementNodeState(n: NodeEmitter, node: NodeEmitter): boolean {
+    private checkAdvertisementNodeChanges(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
             if (!deepEqual(n, node)) {
                 this.refresh()
@@ -363,8 +371,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
 
         // if items is empty, start to waiting for nodes
         if (this.items.size < 1) {
-            this.setWaitingIcon()
-            this.refresh()
+            this.refresh(true)
         }
     }
 
@@ -381,7 +388,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             return
         }
 
-        const nodeTimeout = node.advertisementTime + this.nodeDefaultTimeout
+        const nodeTimeout = node.adTime + this.nodeDefaultTimeout
         const interval = createIntervalHandler(nodeTimeout, () => {
             this.checkNodeItemTimeoutControl()
         })
@@ -397,10 +404,6 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private removeLoadingItem(): void {
-        this.removeNodeItem(this.loadingItem.id)
-    }
-
     private async runNode(): Promise<void> {
         await this.node.up()
         this.node.suscribeAll((node) => {
@@ -409,7 +412,7 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
             const nodeItem = this.createNodeTreeItem(node)
             for (const n of this.nodes.values()) {
                 this.addNodeItemTimeoutControl(node)
-                if (this.checkAdvertisementNodeState(n, node)) return
+                if (this.checkAdvertisementNodeChanges(n, node)) return
                 if (this.checkAdvertisementNodeId(n, node, nodeItem)) return
             }
 
