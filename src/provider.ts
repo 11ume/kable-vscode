@@ -1,15 +1,13 @@
 import * as vscode from 'vscode'
-import NodeItem from './tokes/nodeItem'
-import kable from 'kable-core'
-import { Kable } from 'kable-core/lib/kable'
+import clipboardy from 'clipboardy'
+import deepEqual from 'fast-deep-equal'
+import fromUnixTime from 'date-fns/fromUnixTime'
+import createIntervalHandler, { IntervalHandler } from 'interval-handler'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { NODE_STATES } from 'kable-core/lib/node'
 import { Assets } from './assets'
+import NodeItem from './tokes/nodeItem'
 import { isPlainObject, getDateNow } from './utils'
-import fromUnixTime from 'date-fns/fromUnixTime'
-import clipboardy from 'clipboardy'
-import deepEqual from 'fast-deep-equal'
-import createIntervalHandler, { IntervalHandler } from 'interval-handler'
 
 interface CreateItemArgs {
     id?: string
@@ -29,7 +27,7 @@ type TimeControl = {
     ; nodeTimeout: number;
 }
 
-export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
+export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
     onDidChangeTreeData: vscode.Event<NodeItem>
     public isPinned: boolean
@@ -37,11 +35,9 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
     private nodes: Map<string, NodeEmitter>
     private readonly timeControl: Map<string, TimeControl>
     private readonly nodeDefaultTimeout: number
-    private readonly node: Kable
-    private readonly nodeId: string
     private readonly waitingItem: NodeItem
 
-    constructor(private _assets: Assets) {
+    constructor(private assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
         this.isPinned = false
         this.items = new Map()
@@ -49,11 +45,9 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         this.timeControl = new Map()
         this.nodeDefaultTimeout = 1000
 
-        this.nodeId = 'kable-vscode-ext'
-        this.node = kable(this.nodeId, { ignorable: true })
+
         this.waitingItem = this.creteWaitingItem()
         this.addWaitingItem()
-        this.runNode()
     }
 
     public copyItemInfoToClipboard(iid: string): void {
@@ -191,10 +185,10 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
 
     // Assign an icon to a tree item
     private setNodeItemIcon(node: NodeItem, key: string): NodeItem {
-        if (!this._assets[key]) return null
+        if (!this.assets[key]) return null
         node.iconPath = {
-            light: this._assets[key]
-            , dark: this._assets[key]
+            light: this.assets[key]
+            , dark: this.assets[key]
         }
 
         return node
@@ -415,20 +409,17 @@ export class NodesProvider implements vscode.TreeDataProvider<NodeItem> {
         })
     }
 
-    private async runNode(): Promise<void> {
-        await this.node.up()
-        this.node.suscribeAll((node) => {
-            this.removeLoadingItem()
+    public onChanges(node: NodeEmitter): void {
+        this.removeLoadingItem()
 
-            const nodeItem = this.createNodeTreeItem(node)
-            for (const n of this.nodes.values()) {
-                this.addNodeItemTimeoutControl(node)
-                if (this.checkAdvertisementNodeChanges(n, node)) return
-                if (this.checkAdvertisementNodeId(n, node, nodeItem)) return
-            }
+        const nodeItem = this.createNodeTreeItem(node)
+        for (const n of this.nodes.values()) {
+            this.addNodeItemTimeoutControl(node)
+            if (this.checkAdvertisementNodeChanges(n, node)) return
+            if (this.checkAdvertisementNodeId(n, node, nodeItem)) return
+        }
 
-            this.addNodesFirstAdvertisement(node, nodeItem)
-        })
+        this.addNodesFirstAdvertisement(node, nodeItem)
     }
 
     public getTreeItem(item: NodeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
