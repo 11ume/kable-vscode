@@ -6,8 +6,8 @@ import createIntervalHandler, { IntervalHandler } from 'interval-handler'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
 import { NODE_STATES } from 'kable-core/lib/node'
 import { Assets } from '../assets'
-import NodeItem from './nodeItem'
 import { isPlainObject, getDateNow, removeVariables } from '../utils'
+import NodeProviderItem from './nodeProviderItem'
 
 interface CreateItemArgs {
     id?: string
@@ -15,7 +15,7 @@ interface CreateItemArgs {
     ; icon: string
     ; contextValue?: string
     ; collapsibleState: vscode.TreeItemCollapsibleState
-    ; children?: NodeItem[];
+    ; children?: NodeProviderItem[];
 }
 
 type TimeControl = {
@@ -27,15 +27,15 @@ type TimeControl = {
     ; nodeTimeout: number;
 }
 
-export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
-    _onDidChangeTreeData: vscode.EventEmitter<NodeItem> = new vscode.EventEmitter<NodeItem>()
-    onDidChangeTreeData: vscode.Event<NodeItem>
+export class NodeProvider implements vscode.TreeDataProvider<NodeProviderItem> {
+    _onDidChangeTreeData: vscode.EventEmitter<NodeProviderItem> = new vscode.EventEmitter<NodeProviderItem>()
+    onDidChangeTreeData: vscode.Event<NodeProviderItem>
     public isPinned: boolean
-    private items: Map<string, NodeItem>
+    private items: Map<string, NodeProviderItem>
     private nodes: Map<string, NodeEmitter>
     private readonly timeControl: Map<string, TimeControl>
     private readonly nodeDefaultTimeout: number
-    private readonly waitingItem: NodeItem
+    private readonly waitingItem: NodeProviderItem
 
     constructor(private assets: Assets) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event
@@ -72,7 +72,7 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
         this._onDidChangeTreeData.fire()
     }
 
-    private creteWaitingItem(): NodeItem {
+    private creteWaitingItem(): NodeProviderItem {
         const id = 'waiting'
         return this.createNodeItem({
             id
@@ -86,7 +86,7 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
         this.items.set(this.waitingItem.id, this.waitingItem)
     }
 
-    private addNode(node: NodeEmitter, nodeItem: NodeItem): void {
+    private addNode(node: NodeEmitter, nodeItem: NodeProviderItem): void {
         this.items.set(node.iid, nodeItem)
         this.nodes.set(node.iid, node)
     }
@@ -106,7 +106,7 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
 
     private orderNodeTree(): void {
         const sortNodes: Map<string, NodeEmitter> = new Map()
-        const sortItems: Map<string, NodeItem> = new Map()
+        const sortItems: Map<string, NodeProviderItem> = new Map()
         const nodes = Array.from(this.nodes.values())
         const sorted = nodes.reduce((pv, cv) => {
             pv.push(cv.id)
@@ -184,7 +184,7 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Assign an icon to a tree item
-    private setNodeItemIcon(node: NodeItem, key: string): NodeItem {
+    private setNodeItemIcon(node: NodeProviderItem, key: string): NodeProviderItem {
         if (!this.assets[key]) return null
         node.iconPath = {
             light: this.assets[key]
@@ -202,8 +202,8 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
         , contextValue
         , collapsibleState
         , children
-    }: CreateItemArgs): NodeItem {
-        const item = new NodeItem({
+    }: CreateItemArgs): NodeProviderItem {
+        const item = new NodeProviderItem({
             id
             , label
             , contextValue
@@ -216,10 +216,10 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     private createNodeTreeItemChilds(
-        children: NodeItem[]
+        children: NodeProviderItem[]
         , isObject: boolean
         , node: NodeEmitter
-        , key: string): NodeItem {
+        , key: string): NodeProviderItem {
         const icon = this.setChildItemIcon(key, isObject)
         const item = this.createNodeItem({
             label: this.setChildItemLabel(isObject, node, key)
@@ -234,11 +234,11 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     private handleNodeTreeChilds(isObject: boolean
-        , nodeChilds: NodeItem[]
+        , nodeChilds: NodeProviderItem[]
         , node: NodeEmitter
-        , key: string): NodeItem[] {
+        , key: string): NodeProviderItem[] {
         const nChilds = Array.from(nodeChilds)
-        let children: NodeItem[] = []
+        let children: NodeProviderItem[] = []
         if (key === 'time') {
             node[key] = this.setNodeTimeStampToDate(node, key)
         }
@@ -277,8 +277,8 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Crate childs items of array (icon) <object> -> keys
-    private createNodeTreeChilds(node: NodeEmitter): NodeItem[] {
-        let nodeChilds: NodeItem[] = []
+    private createNodeTreeChilds(node: NodeEmitter): NodeProviderItem[] {
+        let nodeChilds: NodeProviderItem[] = []
         for (const key in node) {
             const isObject = isPlainObject(node[key]) || Array.isArray(node[key])
             nodeChilds = this.handleNodeTreeChilds(isObject
@@ -290,8 +290,8 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Crate childs items of array (icon) <Array> -> values
-    private createArrayNodeTreeChilds(node: NodeEmitter): NodeItem[] {
-        const nodeChilds: NodeItem[] = []
+    private createArrayNodeTreeChilds(node: NodeEmitter): NodeProviderItem[] {
+        const nodeChilds: NodeProviderItem[] = []
         for (const key in node) {
             const icon = 'node'
             const item = this.createNodeItem({
@@ -306,7 +306,7 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Crate main tree items (icon) label -> childs
-    private createNodeTreeItem(node: NodeEmitter): NodeItem {
+    private createNodeTreeItems(node: NodeEmitter): NodeProviderItem {
         return this.createNodeItem({
             id: node.iid
             , label: node.id
@@ -331,16 +331,14 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
         if (n.iid === node.iid) {
             const { partialN, partialNode } = this.removeVariables(n, node)
             if (deepEqual(partialN, partialNode)) return true
-            else {
-                this.refresh()
-            }
         }
 
+        this.refresh()
         return false
     }
 
     // Is invoked after the first time a node is announced, to check and prevent duplicate nodes
-    private checkAdvertisementNodeId(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeItem): boolean {
+    private checkAdvertisementNodeId(n: NodeEmitter, node: NodeEmitter, nodeItem: NodeProviderItem): boolean {
         if (n.id === node.id) {
             this.removeNodeAndItemById(node.id)
             this.addNode(node, nodeItem)
@@ -351,7 +349,7 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
     }
 
     // Is invoked in first time, when a not registered node is announced
-    private addNodesFirstAdvertisement(node: NodeEmitter, nodeItem: NodeItem): void {
+    private addNewNodes(node: NodeEmitter, nodeItem: NodeProviderItem): void {
         this.addNode(node, nodeItem)
         this.refresh()
     }
@@ -396,7 +394,6 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
             this.checkNodeItemTimeoutControl()
         })
         interval.start()
-
         this.timeControl.set(node.iid, {
             id: node.id
             , iid: node.iid
@@ -409,21 +406,21 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeItem> {
 
     public onChanges(node: NodeEmitter): void {
         this.removeLoadingItem()
-        const nodeItem = this.createNodeTreeItem(node)
+        const nodeTreeItems = this.createNodeTreeItems(node)
         for (const n of this.nodes.values()) {
             this.addNodeItemTimeoutControl(node)
             if (this.checkAdvertisementNodeChanges(n, node)) return
-            if (this.checkAdvertisementNodeId(n, node, nodeItem)) return
+            if (this.checkAdvertisementNodeId(n, node, nodeTreeItems)) return
         }
 
-        this.addNodesFirstAdvertisement(node, nodeItem)
+        this.addNewNodes(node, nodeTreeItems)
     }
 
-    public getTreeItem(item: NodeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    public getTreeItem(item: NodeProviderItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return item
     }
 
-    public async getChildren(item?: NodeItem): Promise<vscode.TreeItem[]> {
+    public async getChildren(item?: NodeProviderItem): Promise<vscode.TreeItem[]> {
         if (item === undefined) {
             return Array.from(this.items.values())
         }

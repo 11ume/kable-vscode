@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
-import { NodeProvider } from './provider/provider'
+import { NodeProvider } from './extension/nodeProvider'
 import NodeExtension from './extension/nodeExtension'
 import OutputChannel from './extension/outputChannel'
 import assets from './assets'
@@ -25,6 +25,7 @@ export async function activate(): Promise<void> {
     const nodeExtension = new NodeExtension('kable-vscode-extension')
     const outputChannel = new OutputChannel('kable')
     const nodeProvider = new NodeProvider(assets)
+
     vscode.window.registerTreeDataProvider('nodeViewer', nodeProvider)
     vscode.commands.registerCommand('extension.treeview.pin', () => {
         nodeProvider.pin(true)

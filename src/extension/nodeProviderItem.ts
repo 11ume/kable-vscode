@@ -9,7 +9,7 @@ interface NodeItemArgs {
 	; children?: vscode.TreeItem[];
 }
 
-export default class NodeItem extends vscode.TreeItem {
+export default class NodeProviderItem extends vscode.TreeItem {
 	command?: vscode.Command
 	contextValue?: string
 	collapsibleState?: vscode.TreeItemCollapsibleState
