@@ -330,10 +330,11 @@ export class NodeProvider implements vscode.TreeDataProvider<NodeProviderItem> {
     private checkAdvertisementNodeChanges(n: NodeEmitter, node: NodeEmitter): boolean {
         if (n.iid === node.iid) {
             const { partialN, partialNode } = this.removeVariables(n, node)
-            if (deepEqual(partialN, partialNode)) return true
+            const check = deepEqual(partialN, partialNode)
+            if (check) return true
+            else this.refresh()
         }
 
-        this.refresh()
         return false
     }
 
