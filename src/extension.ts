@@ -25,7 +25,6 @@ export async function activate(): Promise<void> {
     const nodeExtension = new NodeExtension('kable-vscode-extension')
     const outputChannel = new OutputChannel('kable')
     const nodeProvider = new NodeProvider(assets)
-
     vscode.window.registerTreeDataProvider('nodeViewer', nodeProvider)
     vscode.commands.registerCommand('extension.treeview.pin', () => {
         nodeProvider.pin(true)
