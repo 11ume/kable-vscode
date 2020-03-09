@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { NodeEmitter } from 'kable-core/lib/eventsDriver'
-import { NodeProvider } from './provider/provider'
+import { NodeProvider } from './extension/nodeProvider'
 import NodeExtension from './extension/nodeExtension'
 import OutputChannel from './extension/outputChannel'
 import assets from './assets'
