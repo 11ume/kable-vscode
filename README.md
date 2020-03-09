@@ -9,7 +9,7 @@
 <br>
 
 <div align="center">
-    <img src="https://github.com/11ume/kable-vscode/blob/master/images/vscode-ext.png" width="100" height="auto"/>
+    <img src="https://github.com/11ume/kable-vscode/blob/master/images/vscode-ext.png" width="auto" height="auto"/>
 </div>
 
 
